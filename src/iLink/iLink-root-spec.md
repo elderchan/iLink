@@ -1159,7 +1159,7 @@ iLink 的每个角色 MUST 由人类手动触发：
 │   ├── ilink-status
 │   ├── ilink-approve
 │   └── ilink-pull
-├── .qoder/commands/                    ← Qoder CLI 平台
+├── .qoder/commands/                    ← Qoder CLI 平台（bash 脚本）
 │   ├── _common.sh
 │   ├── ilink-init
 │   ├── ilink-pm
@@ -1168,7 +1168,22 @@ iLink 的每个角色 MUST 由人类手动触发：
 │   ├── ilink-qa
 │   ├── ilink-status
 │   ├── ilink-approve
-│   └── ilink-pull
+│   ├── ilink-refine
+│   ├── ilink-domain
+│   ├── ilink-pull
+│   └── ilink-bootstrap
+├── .qoder/skills/                     ← Qoder CLI 平台（Slash Command）
+│   ├── ilink-init/SKILL.md            ← Story 初始化（AI 薄壳）
+│   ├── ilink-pm/SKILL.md              ← PM 角色
+│   ├── ilink-design/SKILL.md          ← Designer 角色
+│   ├── ilink-coder/SKILL.md           ← Coder 角色
+│   ├── ilink-qa/SKILL.md              ← QA 角色
+│   ├── ilink-status/SKILL.md          ← 状态查看（AI 薄壳）
+│   ├── ilink-approve/SKILL.md         ← Human-Gate 推进（含 Coach 子流程）
+│   ├── ilink-refine/SKILL.md          ← STAGING 修订对话
+│   ├── ilink-domain/SKILL.md          ← 认知模式
+│   ├── ilink-pull/SKILL.md            ← Issue System 拉取（AI 薄壳）
+│   └── ilink-bootstrap/SKILL.md       ← 项目冷启动
 ├── .gemini/commands/                   ← Gemini CLI 平台（全部为 TOML 命令文件）
 │   ├── ilink-init.toml
 │   ├── ilink-pm.toml
