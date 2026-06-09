@@ -504,7 +504,7 @@ Bootstrap 是项目级的**一次性冷启动**，不是每次开发 Story 都�
 执行 `/ilink-bootstrap` 时，AI MUST 按以下顺序完成：
 
 **步骤 1 — 框架文件检查**：
-- 校验 `iLink/iLink-root-spec.md` 与 `iLink/souls/{universal,pm,design,coder,qa,domain,coach}.soul.md` 是否存在
+- 校验 `iLink/iLink-root-spec.md` 与 `iLink/souls/{universal,pm,design,coder,qa,domain,coach,lightme}.soul.md` 是否存在
 - 全部缺失时 MUST 停止执行，提示用户先复制 iLink 框架到项目
 
 **步骤 2 — Command 文件检查**：

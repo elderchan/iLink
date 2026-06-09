@@ -100,7 +100,7 @@ Command 文件 MUST 遵守对应 Soul 文件和 Root Spec，MAY 包含平台特�
 | project-context.md | 项目级知识库，定义技术栈、模块职责、编码规范等 |
 | 读取链 | 每个角色启动时 MUST 依次读取的文件序列 |
 | 回流 | QA 判定 FAIL_BACK_TO_CODER 后，Coder 根据 [FIX_REQUESTS] 修复代码的过程 |
-| 熔断 | 回流次数达到阈值（默认 3 次）后，`ilink-status` 输出熔断警告并提示人类介入（软提示，非硬性阻断；详见 §3.4） |
+| 熔断 | 回流次数达到阈值（默认 3 次）后，`/ilink-status` 输出熔断警告并提示人类介入（软提示，非硬性阻断；详见 §3.4） |
 | Domain Knowledge | 针对特定业务模块的领域认知文档，记录业务实体、流程全景、接口与集成、设计决策等，存放于 `iLink-doc/domain/` |
 | 认知资产 | 团队通过 Domain Knowledge 等认知线活动沉淀的可复用领域理解，独立于具体工单存在 |
 | [待确认] | Domain Knowledge 中 AI 无法从代码推导、需要业务专家或资深人员补充的标记项 |
@@ -166,7 +166,7 @@ iLink 包含两条平行的工作线，共用同一套 Host CLI 基础设施：
 3. **模型无关**：Soul 文件、Master Doc、project-context.md MUST 为纯 Markdown，SHALL NOT 绑定特定 LLM。
 4. **平台可移植**：Slash Command 和 Soul 文件 SHOULD 可在不同 Host CLI 之间迁移。
 5. **最小自研**：只在 Host CLI 无法覆盖的地方写 bash 脚本。
-6. **认知与交付分离**：认知线活动（Domain Knowledge、Coach 协作复盘）与 Story 开发流程（交付线）MUST 保持独立，SHALL NOT 将 `ilink-domain` 纳入 PM→QA 流水线序列；Coach 虽嵌入 `/ilink-approve` 触发，但其产出（feedback.md）SHALL NOT 进入流水线契约链，仅供人类复盘。认知线产出是交付线的**输入参考或团队能力提升资产**，而非前置节点；其中 Domain Knowledge 沉淀团队对**业务领域**的理解，Coach 沉淀团队对**与 AI 协作方法**的反思。
+6. **认知与交付分离**：认知线活动（Domain Knowledge、Coach 协作复盘）与 Story 开发流程（交付线）MUST 保持独立，SHALL NOT 将 `/ilink-domain` 纳入 PM→QA 流水线序列；Coach 虽嵌入 `/ilink-approve` 触发，但其产出（feedback.md）SHALL NOT 进入流水线契约链，仅供人类复盘。认知线产出是交付线的**输入参考或团队能力提升资产**，而非前置节点；其中 Domain Knowledge 沉淀团队对**业务领域**的理解，Coach 沉淀团队对**与 AI 协作方法**的反思。
 
 ---
 
@@ -215,7 +215,7 @@ PM → Designer → Coder → QA
 
 **不确定性标记语义**：
 - `[待确认]` 标记表示该项存在未解决的不确定性；下游角色 MUST 识别为待定假设，SHALL NOT 将其视为已确认的稳定约束
-- `[已确认 <日期>: <依据>]` 标记表示人类已正式决策（通过 `ilink-refine` 对话或直接编辑）；下游角色 MUST 将其视为已解决的绑定约束，SHALL NOT 重新质疑
+- `[已确认 <日期>: <依据>]` 标记表示人类已正式决策（通过 `/ilink-refine` 对话或直接编辑）；下游角色 MUST 将其视为已解决的绑定约束，SHALL NOT 重新质疑
 - QA MUST 验证最终代码是否符合所有 `[已确认]` 假设的前提条件
 
 ### 3.4 回流与熔断
@@ -665,7 +665,7 @@ Step 5  人工审核 [待确认] 逐条确认（终稿签字——对文档准�
 
 **版本更新规范**：
 
-- 代码发生影响本文档所描述业务逻辑的变更后，SHOULD 由资深人员重新触发 `ilink-domain` 或手动修订，并在版本历史中追加记录
+- 代码发生影响本文档所描述业务逻辑的变更后，SHOULD 由资深人员重新触发 `/ilink-domain` 或手动修订，并在版本历史中追加记录
 - 触发原因 SHOULD 关联具体的代码变更（如 PR 编号、Story 编号），使文档与代码变更可追溯
 - 版本号采用 `v<主版本>.<次版本>` 格式：主版本号在模块发生重大重构时递增，次版本号在局部更新时递增
 - 仅确认 [待确认] 项、修正笔误等小改动 MAY 不递增版本号，直接更新 `最后更新` 日期即可
@@ -693,8 +693,8 @@ Domain Knowledge 文档 MUST 包含以下十个章节，存放于 `iLink-doc/dom
 - 关联方式：人类在需求定义中通过"关联领域知识"可选字段指定 Domain Knowledge 文件路径；PM 和 Designer 仅在该字段有值时读取，不主动扫描 `iLink-doc/domain/` 目录
 - PM 角色：MAY 读取关联的 Domain Knowledge（主要参考 §6 业务规则），但 SHALL NOT 将实现细节引入业务合同
 - Designer 角色：SHOULD 读取关联的 Domain Knowledge（重点参考 §2 业务实体、§4 接口与集成、§7 设计决策），帮助做出与现有架构一致的技术设计
-- Domain Knowledge **不产生** STAGING / PENDING 等流水线状态，不参与 `ilink-approve` 状态机
-- Domain Knowledge 的 [待确认] 确认过程 MAY 复用 `ilink-refine` 的对话协议
+- Domain Knowledge **不产生** STAGING / PENDING 等流水线状态，不参与 `/ilink-approve` 状态机
+- Domain Knowledge 的 [待确认] 确认过程 MAY 复用 `/ilink-refine` 的对话协议
 
 ---
 
@@ -1186,7 +1186,7 @@ Status: <状态值>
 | 状态值 | 产出角色 | 含义 | 下一步 |
 |-------|---------|------|-------|
 | `PENDING_DESIGNER` | PM | PM 正常完成 | `/ilink-design` |
-| `STAGING` | PM / Designer / QA | 等待人类审核 | `ilink-approve` 或人类对话修改 |
+| `STAGING` | PM / Designer / QA | 等待人类审核 | `/ilink-approve` 或人类对话修改 |
 | `PENDING_CODER` | ilink-approve 脚本 | Designer 审核通过 | `/ilink-coder` |
 | `PENDING_QA` | Coder | 编码完成 | `/ilink-qa` |
 | `COMPLETED` | QA | 全部通过 | 人类 review → git commit |
@@ -1228,20 +1228,20 @@ STAGING 是流水线的**人类审核点**。当 Master Doc 的 Status 为 STAGI
 
 ### 6.2 STAGING 解除路径
 
-STAGING 文档的阻塞项必须得到处置后方可推进。人类 SHOULD 在执行 `ilink-approve` 前完成处置，处置路径有以下四种：
+STAGING 文档的阻塞项必须得到处置后方可推进。人类 SHOULD 在执行 `/ilink-approve` 前完成处置，处置路径有以下四种：
 
 | 路径 | 适用场景 | 操作 |
 |------|---------|------|
-| **修订对话**（`ilink-refine`） | 有决策答案，需要 AI 结构化记录 | 执行 `ilink-refine <story>`，与 AI 逐条确认，AI 更新文档 |
+| **修订对话**（`/ilink-refine`） | 有决策答案，需要 AI 结构化记录 | 执行 `/ilink-refine <story>`，与 AI 逐条确认，AI 更新文档 |
 | **直接编辑** | 明显误报，或人类直接知道结论 | 手动修改 STAGING 文档：删除/更新阻塞项、调整 C1 |
 | **修改上游重跑** | 根因在上游文档表述不清 | 修改上游文档（如requirement.md），重新执行对应角色命令全量重生成 |
-| **直接推进**（`ilink-approve`） | 人类主动承担不确定性风险 | 直接执行 `ilink-approve`，`[待确认]` 项原样传入下游 |
+| **直接推进**（`/ilink-approve`） | 人类主动承担不确定性风险 | 直接执行 `/ilink-approve`，`[待确认]` 项原样传入下游 |
 
 > **注意**：选择"直接推进"时，未解决的 `[待确认]` 项将随文档传入下游角色。下游角色 MUST 识别这些项为未解决的不确定性（见 §3.3），SHALL NOT 将其视为已确认的约束。
 
-### 6.3 ilink-refine 修订协议
+### 6.3 /ilink-refine 修订协议
 
-`ilink-refine <story>` 是人类与 AI 协作解决 STAGING 阻塞项的正式对话协议。
+`/ilink-refine <story>` 是人类与 AI 协作解决 STAGING 阻塞项的正式对话协议。
 
 **触发时机**：当前 Story 存在 STAGING 文档且文档中有 `[待确认]` 项或其他阻塞原因。
 
@@ -1252,8 +1252,8 @@ STAGING 文档的阻塞项必须得到处置后方可推进。人类 SHOULD 在�
 3. **列出阻塞项**：AI 汇总所有 `[待确认]` 项和阻塞原因，逐条呈现给人类
 4. **逐条决策**：人类给出决策，AI 记录为 `[已确认 <YYYY-MM-DD>: <决策依据>]`，同步调整风险等级
 5. **清理调度通知**：已确认的项从 C1 NOTIFY_ITEMS 中移除；全部清空后写 `NOTIFY_ITEMS: NONE`
-6. **更新 Status**：所有 H 级阻塞项消解后，AI 维持 Status 为 STAGING（状态推进由 ilink-approve 统一负责）；否则维持 STAGING
-7. **提示下一步**：所有阻塞项消解后，提示人类执行 `ilink-approve` 正式推进状态
+6. **更新 Status**：所有 H 级阻塞项消解后，AI 维持 Status 为 STAGING（状态推进由 /ilink-approve 统一负责）；否则维持 STAGING
+7. **提示下一步**：所有阻塞项消解后，提示人类执行 `/ilink-approve` 正式推进状态
 
 **各角色的阻塞项位置**：
 
@@ -1277,7 +1277,7 @@ STAGING 文档的阻塞项必须得到处置后方可推进。人类 SHOULD 在�
 - AI SHALL NOT 修改未被讨论的条目（即使认为可以优化）
 - AI MUST 在每次修改后明确告知人类已更新的条目编号
 
-### 6.4 ilink-approve 审批协议
+### 6.4 /ilink-approve 审批协议
 
 `/ilink-approve <story>` 是流水线的**正式推进动作**，从 v1.6.0 起升级为 slash command（之前是 shell 脚本），内部按以下子流程串行执行：
 
