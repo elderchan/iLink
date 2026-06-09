@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# ilink-lightme <story> - Pre-check for /ilink-lightme slash command (v1.8.0)
+# Validates design.master.md exists, computes Upstream_SHA1, reports domain coverage,
+# guides user to run /ilink-lightme in a NEW Qoder session.
+
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=/dev/null
+source "$DIR/_common.sh"
+
+story_required "$@"
+story="$1"
+base_dir="$(story_dir "$story")"
+
+if [[ ! -d "$base_dir" ]]; then
+  log_error "Story directory not found: $base_dir"
+  exit 1
+fi
+
+design_doc="$base_dir/${story}-design.master.md"
+if [[ ! -f "$design_doc" ]]; then
+  log_error "design.master.md not found: $design_doc"
+  echo "  Lightme runs between /ilink-design and /ilink-approve."
+  echo "  Run /ilink-design $story first."
+  exit 1
+fi
+
+# Verify design.master.md is STAGING (typical case)
+status=$(check_status "$design_doc")
+if [[ "$status" == "PENDING_CODER" ]]; then
+  log_error "design.master.md status is PENDING_CODER — 该 design 已经过 /ilink-approve，再跑 lightme 无意义。"
+  echo "  典型修复路径："
+  echo "  - 如发现设计缺陷想推翻已 approve 的决策：重跑 /ilink-design 生成新 design（Status 回 STAGING），再 /ilink-lightme"
+  echo "  - 如仅想审计已 approve 设计的盲区记录：不要用 lightme，建议 Leader 手动复盘并在 Story 笔记或 commit 信息中留痕"
+  exit 1
+elif [[ "$status" != "STAGING" ]]; then
+  log_warn "design.master.md status is $status (expected STAGING)"
+  echo "  Lightme is most useful when design is STAGING and pending approve."
+  echo "  Proceeding anyway."
+fi
+
+# Compute SHA1 for AI to use as Upstream_SHA1 in lightme.md Metadata
+sha1=$(shasum "$design_doc" | awk '{print $1}')
+
+# Report domain coverage (informational only)
+domain_dir="iLink-doc/domain"
+domain_count=0
+if [[ -d "$domain_dir" ]]; then
+  domain_count=$(find "$domain_dir" -maxdepth 1 -name '*-domain-knowledge.md' 2>/dev/null | wc -l | tr -d ' ')
+fi
+
+echo ""
+echo "=========================================="
+echo "/ilink-lightme <$story> 预检完成"
+echo "=========================================="
+echo ""
+echo "  目标 design   : $design_doc"
+echo "  Status        : $status"
+echo "  Upstream_SHA1 : $sha1"
+echo "  Domain 文档数 : $domain_count (in $domain_dir/)"
+echo ""
+echo "现在请在【全新的 Qoder 会话】中执行 slash 命令以触发 lightme 拷问："
+echo ""
+echo "  /ilink-lightme $story"
+echo ""
+echo "  AI 将："
+echo "    1. 加载 design.master.md / project-context.md / 相关 domain"
+echo "    2. 以对抗（协作）人格拷问设计，挑盲区（至少 3 个）"
+echo "    3. 经 Human-Gate 确认后就地更新 project-context.md / 已存在的 domain"
+echo "    4. 生成 iLink-doc/$story/${story}-lightme.md 审计报告"
+echo "    5. Metadata 印章使用 Upstream_SHA1: $sha1"
+echo ""
+echo "⚠️ 必须在【全新 Qoder 会话】中运行 /ilink-lightme，"
+echo "   不能接在生成 design 的同一会话后（会护短，见 Root Spec §4.8.5）。"
+echo ""

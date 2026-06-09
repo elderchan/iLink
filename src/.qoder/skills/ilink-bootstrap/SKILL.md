@@ -215,16 +215,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### 流水线命令
 
+所有命令均在 Qoder 对话窗口输入（使用者无需打开操作系统 shell）：
+
 /ilink-init <story>     → 创建 Story 目录和需求模板
 /ilink-pm <story>       → PM：需求分析 → 业务合同
 /ilink-design <story>   → Designer：技术设计 → 文件级任务清单
 /ilink-lightme <story>  → Lightme：设计拷问员（可选，v1.8.0+；MUST 在全新会话执行）
 /ilink-approve <story>  → Human-Gate：审核推进 + Coach 协作复盘
 /ilink-coder <story>    → Coder：按设计编码 → 直接写入磁盘
-/ilink-qa <story>       → QA：代码审查 → 审查报告
-
-Designer 完成后默认需要人类审核（Human-Gate），审核通过后执行：
-`bash .qoder/commands/ilink-approve <story>`
+/ilink-qa <story> <usage-value> → QA：代码审查 → 审查报告（usage-value 必填）
+/ilink-status [story]   → 查看流水线状态
 ```
 
 ### 步骤 7：更新 AGENTS.md
@@ -284,25 +284,17 @@ Designer 完成后默认需要人类审核（Human-Gate），审核通过后执�
 ### 快速开始
 
 1. 读取 `project-context.md` 了解项目
-2. 创建 Story：执行 `bash .qoder/commands/ilink-init <story-id>`
-3. 按流水线执行：`/ilink-pm` → `/ilink-design` → `/ilink-approve` → `/ilink-coder` → `/ilink-qa`
+2. 创建 Story：输入 `/ilink-init <story-id>`
+3. 按流水线执行：`/ilink-pm` → `/ilink-design` → `/ilink-approve` → `/ilink-coder` → `/ilink-qa <story> <usage-value>`
 4. 可选：在 `/ilink-design` 之后、`/ilink-approve` 之前，于**全新 Qoder 会话**输入 `/ilink-lightme <story>` 触发设计拷问员（v1.8.0+）
 
 ### 角色触发
 
-当用户输入 `ilink-pm <story>`、`ilink-design <story>`、`ilink-coder <story>`、`ilink-qa <story>`、`ilink-lightme <story>` 时：
+当用户输入 `/ilink-pm <story>`、`/ilink-design <story>`、`/ilink-coder <story>`、`/ilink-qa <story>`、`/ilink-lightme <story>` 时：
 
-**Qoder CLI 用户**：执行对应的 bash 脚本准备输入，然后在对话中执行 slash 命令。
+**Qoder CLI 用户**：AI 读取 `.qoder/skills/` 下对应的 SKILL.md 执行任务；`.qoder/commands/*` 下的 bash 脚本是 AI 内部调用的实现细节，使用者无需直接运行。
 
 **其他 CLI 用户**：请先读取 `iLink/iLink-root-spec.md` §4（角色行为规范），然后读取对应的 Soul 文件执行任务。
-
-### Shell 工具
-
-| 命令 | 用途 |
-|------|------|
-| `bash .qoder/commands/ilink-init <story>` | 创建 Story |
-| `bash .qoder/commands/ilink-status [story]` | 查看状态 |
-| `bash .qoder/commands/ilink-approve <story>` | 审核推进 |
 ```
 
 ### 步骤 8：创建 iLink-doc 目录
@@ -363,5 +355,5 @@ Designer 完成后默认需要人类审核（Human-Gate），审核通过后执�
 3. 提交 Bootstrap 产出：
    git add project-context.md CLAUDE.md AGENTS.md iLink-doc/
    git commit -m "iLink bootstrap: 初始化项目协作环境"
-4. 创建第一个 Story：bash .qoder/commands/ilink-init <story-id>
+4. 创建第一个 Story：/ilink-init <story-id>
 ```
