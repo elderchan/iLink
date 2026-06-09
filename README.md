@@ -24,7 +24,7 @@ iLink 用 **Root Spec**（AI Agent 的宪法）+ **Soul 文件**（角色岗位�
                       Domain Engineer                     Human-Gate
 
 ── 协作复盘模式 ──────────────────────────────────────────────────────
-ilink-approve 触发 → Coach 子上下文评估对话 + design 编辑 → 追加 feedback.md → 人类回看
+/ilink-approve 触发 → Coach 子上下文评估对话 + design 编辑 → 追加 feedback.md → 人类回看
                        (fresh context, 不读 master doc, 反献媚反美化)
 ```
 
@@ -44,13 +44,13 @@ ilink-approve 触发 → Coach 子上下文评估对话 + design 编辑 → 追�
 - **文件状态机**：所有状态保存在 Markdown 文件中，不依赖内存，支持断点续跑和跨机器接力
 - **Human-Gate**：设计阶段默认需要人类审核，审核通过后才能编码。团队建立信任后可逐步放开
 - **QA 回流 + 熔断**：代码审查不通过时自动回流修复，连续 3 次不过强制熔断，要求人类介入
-- **STAGING 修订**：AI 遇到不确定项时标记 `[待确认]` 并暂停，人类通过 `ilink-refine` 逐条确认，决策记录为 `[已确认]`
+- **STAGING 修订**：AI 遇到不确定项时标记 `[待确认]` 并暂停，人类通过 `/ilink-refine` 逐条确认，决策记录为 `[已确认]`
 - **Story 隔离**：每个需求一个独立目录，完整文档链，互不干扰，天然适配 Jira/工单驱动的迭代开发
 - **Metadata 印章**：每份文档记录角色、AI 模型、时间戳、上游文档 SHA1 哈希，构成可追溯的决策链
 - **模型无关**：核心资产全部是纯 Markdown，不绑定特定 LLM。Claude、GPT、Qwen 均可使用
 - **多平台支持**：同一套协议可运行在 Claude CLI、Qoder CLI、Codex CLI、Gemini CLI 等不同 Host CLI 上
 - **Domain Knowledge（领域知识）**：认知模式下 AI 读取既有源码，生成 10 章标准领域知识文档——业务定位、业务实体、流程全景、接口与集成、内部机制、业务规则、设计决策、配置参数、故障模式、待确认，由资深工程师引导，沉淀为团队认知资产。其中 §4「接口与集成」由 AI 通过 grep `@BexMethod` / `@Autowired` / `@DataSource` / `@Value` 等注解机械提取，输出对外功能号 / 内部依赖 / 数据库依赖 / 配置依赖四张依赖表，是代码事实驱动、非推测的依赖全景视图——新成员接手、影响面分析、改造前盘点都靠这一章
-- **Coach 协作复盘（v1.6.0）**：每次 `ilink-approve` 触发独立子上下文中的 Coach，原文摘录人类对话 + 计算 design 直接编辑 diff，输出一段反献媚、反自我美化、必须带证据的反馈，追加到 `<story>-feedback.md`。Coach 子流程不读 master doc，下游 AI 也不读 feedback.md——它是写给人类看的协作镜子，异常时不阻塞 Status 推进
+- **Coach 协作复盘（v1.6.0）**：每次 `/ilink-approve` 触发独立子上下文中的 Coach，原文摘录人类对话 + 计算 design 直接编辑 diff，输出一段反献媚、反自我美化、必须带证据的反馈，追加到 `<story>-feedback.md`。Coach 子流程不读 master doc，下游 AI 也不读 feedback.md——它是写给人类看的协作镜子，异常时不阻塞 Status 推进
 - **Per-Story Usage 追踪（v1.6.0）**：`/ilink-init` 与 `/ilink-qa` 强制要求第二参数 `<usage-value>`——执行命令前先用平台原生命令查"已用量"（Claude `/usage` %、Qoder `/usage` credits、Codex `/status` tokens、Gemini `/stats` tokens）并传入。结果写入独立的 `<story>-usage.md`，自动计算 Latest Delta，识别跨 reset 边界。仅采样 init 与 review 两个时点，中间阶段零侵入；usage 文件不参与契约链，缺失或写入失败均不阻塞 Status 推进
 - **CLI-native**：不自建 LLM 调用层，充分利用 Host CLI 的原生能力
 
@@ -127,7 +127,7 @@ Bootstrap 会自动：
 /ilink-design kcia-1520      # AI 技术设计 → 输出文件清单
 
 # 你审核设计（最重要的审核点）
-ilink-approve kcia-1520      # 审核通过后推进 + Coach 协作复盘（v1.6.0）
+/ilink-approve kcia-1520      # 审核通过后推进 + Coach 协作复盘（v1.6.0）
 
 # AI 编码 + AI 审查（v1.6.0：qa 第二参数同样为当前已用量）
 /ilink-coder kcia-1520       # AI 按设计写代码，直接写入磁盘
@@ -146,7 +146,7 @@ git commit -m "kcia-1520: 功能描述（iLink 交付）"
 ┌──────────────────────────────────────────┐
 │       人类（Dev / Tech Lead）              │
 │  /ilink-init → /ilink-pm → /ilink-design │
-│  → ilink-approve → /ilink-coder → /qa    │
+│  → /ilink-approve → /ilink-coder → /qa    │
 │  /ilink-refine（STAGING 时使用）           │
 └──────────────┬───────────────────────────┘
                │ 手动触发
@@ -158,8 +158,8 @@ git commit -m "kcia-1520: 功能描述（iLink 交付）"
 │  /ilink-pm  /ilink-design  /ilink-coder   │
 │  /ilink-qa  /ilink-refine                 │
 ├──────────────────────────────────────────┤
-│    Bash 辅助脚本层（轻量）                  │
-│  ilink-init / ilink-status / ilink-approve │
+│    AI 内部脚本层（bash，实现细节）           │
+│  .X/commands/{ilink-init, ilink-status,…}  │
 │  _common.sh（Metadata 注入、回流计数）      │
 └──────────────────────────────────────────┘
 ```
@@ -175,7 +175,7 @@ pm.master.md [PENDING_DESIGNER | STAGING]
     │                 └──→ /ilink-refine ──→ [PENDING_DESIGNER]
     │ /ilink-design
     ▼
-design.master.md [STAGING] ──→ ilink-approve ──→ [PENDING_CODER]
+design.master.md [STAGING] ──→ /ilink-approve ──→ [PENDING_CODER]
     │ /ilink-coder
     ▼
 code.master.md + 源码文件 [PENDING_QA]
@@ -220,7 +220,7 @@ Command 文件（平台实现，"操作手册"）
 
 | 角色 | 职责 | 输入 | 输出 |
 |------|------|------|------|
-| **Coach** | 在 `ilink-approve` 触发的独立子上下文中，仅评估人类沟通输入与 design 直接编辑的协作质量；不读 master doc、不评价代码本身；反献媚、反自我美化、必须带 [turn-N] 或 @diff-hunk 证据 | 对话原文摘录 + design 编辑 diff | feedback.md（追加） |
+| **Coach** | 在 `/ilink-approve` 触发的独立子上下文中，仅评估人类沟通输入与 design 直接编辑的协作质量；不读 master doc、不评价代码本身；反献媚、反自我美化、必须带 [turn-N] 或 @diff-hunk 证据 | 对话原文摘录 + design 编辑 diff | feedback.md（追加） |
 
 每个角色的行为由对应的 Soul 文件（`iLink/souls/*.soul.md`）定义，所有角色共享 `universal.soul.md` 中的通用行为准则。
 
@@ -270,7 +270,7 @@ Command 文件（平台实现，"操作手册"）
 |----------|---------|---------|
 | **Claude CLI** | `.claude/commands/*.md` | `/ilink-pm <story>` |
 | **Qoder CLI** | `.qoder/commands/*` | `/ilink-pm <story>` |
-| **Codex CLI** | `.codex/commands/*` | 对话中输入 `ilink-pm <story>` |
+| **Codex CLI** | `.codex/commands/*` | 对话中输入 `/ilink-pm <story>` |
 | **Gemini CLI** | `.gemini/commands/*.toml` | `/ilink-pm <story>` |
 
 同一个项目中，不同开发者可以使用不同的 CLI 工具——Master Doc 格式统一，跨平台无缝接力。
@@ -284,14 +284,15 @@ Command 文件（平台实现，"操作手册"）
 | `/ilink-pull <story>` | 从 Issue 系统拉取需求"描述"字段写入 requirement.md（v1.7.0 新增） | init 后可选 |
 | `/ilink-pm <story>` | AI 需求分析 | 每个 Story |
 | `/ilink-design <story>` | AI 技术设计 | 每个 Story |
-| `ilink-approve <story>` | 人类审核推进 + Coach 协作复盘（v1.6.0） | 审核通过后 |
+| `/ilink-lightme <story>` | Lightme：可选设计拷问员（v1.8.0+，全新会话执行） | design 后、approve 前 |
+| `/ilink-approve <story>` | 人类审核推进 + Coach 协作复盘（v1.6.0） | 审核通过后 |
 | `/ilink-coder <story>` | AI 编码 | 设计通过后 |
 | `/ilink-refine <story>` | 人类逐条确认 `[待确认]` 项 | STAGING 时 |
 | `/ilink-qa <story> <usage-value>` | AI 代码审查 + usage delta（v1.6.0：usage-value 必填） | 编码完成后 |
-| `ilink-status [story]` | 查看流水线状态 | 随时 |
+| `/ilink-status [story]` | 查看流水线状态 | 随时 |
 | `/ilink-domain <module>` | 认知模式：AI 读源码 → 生成领域知识文档 | 资深工程师按需触发 |
 
-> `/ilink-*` 是 AI 执行的 Slash Command，`ilink-*`（无斜杠）是 Shell 脚本。
+> **使用者统一在 Host CLI 对话窗口输入 `/ilink-*`**。各平台 `.X/commands/` 下的 bash 脚本是 AI 内部调用的实现细节，使用者无需打开操作系统 shell。
 >
 > **v1.6.0 usage-value**：传入"当前 session/月度已用量"的整数。各平台原生命令：Claude `/usage`、Qoder `/usage`、Codex `/status`、Gemini `/stats`。允许传 `0` 表示故意跳过（对应 delta 标注为"不可信"）。详见 [Human Guide §3.8](doc/iLink-human-guide.md)。
 
@@ -371,10 +372,19 @@ iLink 可以与上述方案共存，为其提供补充能力：
 
 ## 版本
 
-当前版本：**v1.7.0**（正式版）
+当前版本：**v1.8.0**（正式版）
 
 - Root Spec: `iLink-root-spec.md`
 - Implementation Guide: `iLink-implementation-guide.md`
+
+### v1.8.0 变更
+
+本版本聚焦"项目级定制与设计拷问"，引入两件独立功能（互无依赖，可分别使用）：
+
+- **Soul 三层体系（项目级 Plug）**：在 framework soul 之外引入项目级 `<role>.project.plug.md` 补充层。AI 加载角色时同时持有 framework soul + 项目 plug，**加法语义**（两份均视为约束，框架不主动检测冲突也不仲裁优先级）。框架升级时 plug 不动，项目定制不受影响。bootstrap 自动创建 6 个角色（pm / design / coder / qa / domain / lightme）的空模板；universal plug 由项目按需自建。详见 Root Spec §4.7、Implementation Guide §1.5、Human Guide §12
+- **`/ilink-lightme` 设计拷问员**：design 完成、approve 之前的**可选**独立拷问命令。在全新 Host CLI 会话中运行（隔离护短），以对抗（协作）人格拷问设计，照亮盲区；按 Human-Gate 就地沉淀澄清的术语/决策到 `project-context.md` 和已存在的 `domain-knowledge.md`（绝不创建 domain 文件）；输出审计报告 `<story>-lightme.md`，含 Upstream_SHA1 锚定 design 版本，三态处置（RESOLVED / TO-FIX / ACCEPTED-RISK），SHALL NOT 下"通过/不通过"结论。通用拷问内核，行业特化走 `lightme.project.plug.md`。详见 Root Spec §4.8、`lightme.soul.md`、Human Guide §13
+
+> **跨平台跟进现状**：v1.8.0 Codex CLI 首发（bootstrap、命令、脚本全套完整）。Claude / Qoder / Gemini 平台的 lightme 命令实现与 bootstrap plug 模板创建待 Codex 验证后跟进，无固定 deadline；其它三平台的 plug **协议**已生效（AI 加载 soul 时按 Root Spec §4.7.3 自动加载 plug），仅 bootstrap 模板创建需要手动 copy。
 
 ### v1.7.0 变更
 

@@ -347,7 +347,7 @@ Soul 文件 MUST 遵守 Root Spec，MAY 增加角色特有细节。
 | 平台 | Command 位置 | 格式 | 角色触发方式 |
 |------|-------------|------|------------|
 | Claude CLI | `.claude/commands/*.md` | 纯 Markdown（`$ARGUMENTS` 变量） | `/ilink-pm <story>` |
-| Codex CLI | `.codex/commands/*` + `codex-commands.md` | bash 脚本 + 指令文件 | `ilink-pm <story>`（对话中输入） |
+| Codex CLI | `.codex/commands/*` + `codex-commands.md` | bash 脚本 + 指令文件 | `/ilink-pm <story>`（对话中输入） |
 | Qoder CLI | `.qoder/commands/*` | bash 脚本（准备 bundle + 调 slash） | `/ilink-pm <story>` |
 | Gemini CLI | `.gemini/commands/*.toml` | TOML（`{{args}}` 占位符） | `/ilink-<role> <story>` |
 
@@ -482,16 +482,18 @@ Bootstrap 是项目级的**一次性冷启动**，不是每次开发 Story 都�
 
 **判断依据**：如果 `project-context.md` 不存在或内容严重过时，或入口文件（CLAUDE.md / AGENTS.md）不包含 iLink 协作协议引导，就应该执行 Bootstrap。
 
-### 2.3 ilink-bootstrap 命令规范
+### 2.3 /ilink-bootstrap 命令规范
 
 `/ilink-bootstrap` 是 iLink 提供的 Slash Command，由 AI 在 Host CLI 中执行。命令定义 MUST 在所支持的每个 Host CLI 平台中对应落地：
 
-| 平台 | 命令定义位置 | 预检查脚本 | 触发方式 |
-|------|------------|------------|---------|
+| 平台 | 命令定义位置 | 预检查脚本（AI 内部调用） | 触发方式 |
+|------|------------|------------------------|---------|
 | Claude CLI | `.claude/commands/ilink-bootstrap.md` | — | `/ilink-bootstrap` |
-| Codex CLI | `.codex/codex-commands.md` 中 `ilink-bootstrap` 章节 | `bash .codex/commands/ilink-bootstrap` | 对话中输入 `ilink-bootstrap` |
-| Qoder CLI | `.qoder/commands/ilink-bootstrap.md` | `bash .qoder/commands/ilink-bootstrap` | `/ilink-bootstrap` |
-| Gemini CLI | `.gemini/commands/ilink-bootstrap.toml` | `bash .gemini/commands/ilink-bootstrap` | `/ilink-bootstrap` |
+| Codex CLI | `.codex/codex-commands.md` 中 `ilink-bootstrap` 章节 | `.codex/commands/ilink-bootstrap`（AI 用 Bash 工具调用） | `/ilink-bootstrap` |
+| Qoder CLI | `.qoder/commands/ilink-bootstrap.md` | `.qoder/commands/ilink-bootstrap`（AI 内部调用） | `/ilink-bootstrap` |
+| Gemini CLI | `.gemini/commands/ilink-bootstrap.toml` | `.gemini/commands/ilink-bootstrap`（AI 内部调用） | `/ilink-bootstrap` |
+
+**所有平台使用者统一在对话窗口输入 `/ilink-bootstrap`**；预检查脚本是 AI 内部实现细节，使用者无需打开操作系统 shell。
 
 三个平台的 Bootstrap 命令定义 MUST 在执行步骤、状态判定逻辑（A/B/C/D 四种情况）、入口文件模板（5 条 AI 行为规则）、project-context.md 结构上保持**完全一致**，仅在 Shell 脚本路径和平台特定引用上有差异。
 
@@ -734,17 +736,14 @@ AGENTS.md 与 CLAUDE.md 遵守完全一致的"双向显式 AI 行为规则"—�
 
 ### 角色触发
 
-当用户输入 `ilink-pm <story>` / `ilink-design <story>` / `ilink-coder <story>` / `ilink-qa <story>` / `ilink-refine <story>` 时：
+使用者统一在 Host CLI 对话窗口输入 `/ilink-*`。当用户输入 `/ilink-pm <story>` / `/ilink-design <story>` / `/ilink-lightme <story>` / `/ilink-coder <story>` / `/ilink-qa <story> <usage-value>` / `/ilink-refine <story>` 时：
 
-- **Codex CLI 用户**：先读取 `.codex/codex-commands.md`，按其中指令执行
-- **其他 CLI 用户**：先读取 `iLink/iLink-root-spec.md` §4/§6.3，再读对应 Soul 文件执行
+- **Codex CLI 用户**：AI 先读取 `.codex/codex-commands.md`，按其中指令执行
+- **其他 CLI 用户**：AI 先读取 `iLink/iLink-root-spec.md` §4/§6.3，再读对应 Soul 文件执行
 
-### Shell 工具
+### AI 内部脚本
 
-- `bash .codex/commands/ilink-init <story>` — 创建 Story
-- `bash .codex/commands/ilink-status [story]` — 查看状态
-- `bash .codex/commands/ilink-refine <story>` — 修订对话，解除 STAGING 阻塞
-- `ilink-approve <story>` — 审核推进（v1.6.0 起为对话内命令，触发 Coach 子流程后由 AI 完成 Status 推进）
+`.codex/commands/*`、`.qoder/commands/*` 等下的 bash 脚本是 AI 在执行对应 slash 命令时**内部**通过 Bash 工具调用的实现细节（如 `ilink-init` 文件创建、`ilink-bootstrap` 框架文件预检、`ilink-approve` STAGING 校验等）。**使用者无需也不应当打开操作系统 shell 直接运行这些脚本**——所有操作都在 Host CLI 对话窗口里完成。
 ```
 
 ### 2.5 前置条件

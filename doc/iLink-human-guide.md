@@ -13,7 +13,7 @@
 - [3. 流水线操作详解](#3-流水线操作详解)
 - [4. 审核设计——Human-Gate 实操](#4-审核设计human-gate-实操)
   - [4.6 Coach 协作复盘](#46-coach-协作复盘v160-新增)
-- [5. 修订 STAGING 文档——ilink-refine 实操](#5-修订-staging-文档ilink-refine-实操)
+- [5. 修订 STAGING 文档——/ilink-refine 实操](#5-修订-staging-文档ilink-refine-实操)
 - [6. 回流与熔断——出了问题怎么办](#6-回流与熔断出了问题怎么办)
 - [7. 维护 project-context.md](#7-维护-project-contextmd)
 - [8. 多 Story 并行开发](#8-多-story-并行开发)
@@ -44,7 +44,7 @@
 # ④ 你审核设计（这是你最重要的审核点）
 #    阅读 iLink-doc/kcia-1520/kcia-1520-design.master.md
 #    重点看 [TASK_ALLOCATION] 和 [DESIGN_DECISIONS]
-ilink-approve kcia-1520      # 审核通过，推进到编码
+/ilink-approve kcia-1520      # 审核通过，推进到编码
 
 # ⑤ AI 编码 + 审查（v1.6.0：qa 第二个参数同样为当前已用量）
 /ilink-coder kcia-1520       # AI 写代码
@@ -72,17 +72,17 @@ git commit -m "kcia-1520: 功能描述"
 ```bash
 # 方式 A（推荐）：修订对话，逐条确认
 /ilink-refine kcia-1520      # AI 列出所有 [待确认] 项，你逐条决策
-ilink-approve kcia-1520      # 确认完毕后推进
+/ilink-approve kcia-1520      # 确认完毕后推进
 
 # 方式 B：直接编辑文档
 # 手动修改 STAGING 文档中的阻塞项
-ilink-approve kcia-1520
+/ilink-approve kcia-1520
 
 # 方式 C：修改上游重跑
 # 修改需求定义，重新执行对应角色命令
 
 # 方式 D：直接推进（承担风险）
-ilink-approve kcia-1520      # 未解决的 [待确认] 项原样传入下游
+/ilink-approve kcia-1520      # 未解决的 [待确认] 项原样传入下游
 ```
 
 ### 1.3 查看进度
@@ -90,8 +90,8 @@ ilink-approve kcia-1520      # 未解决的 [待确认] 项原样传入下游
 随时可以查看 Story 的当前状态：
 
 ```bash
-ilink-status              # 查看所有 Story 概览
-ilink-status kcia-1520    # 查看指定 Story 详情
+/ilink-status              # 查看所有 Story 概览
+/ilink-status kcia-1520    # 查看指定 Story 详情
 ```
 
 ---
@@ -285,7 +285,7 @@ ilink-status kcia-1520    # 查看指定 Story 详情
 - `PENDING_DESIGNER` — 正常，进入下一步
 - `STAGING` — AI 认为需求有风险或不明确。有两种处理方式：
   - 执行 `/ilink-refine kcia-1520` 逐条确认 `[待确认]` 项（推荐）
-  - 执行 `ilink-approve kcia-1520` 直接推进（承担风险）
+  - 执行 `/ilink-approve kcia-1520` 直接推进（承担风险）
 
 ### 3.4 /ilink-design — AI 技术设计
 
@@ -304,10 +304,10 @@ ilink-status kcia-1520    # 查看指定 Story 详情
 
 **设计完成后状态为 `STAGING`**，等待你审核（见第 4 章）。
 
-### 3.5 ilink-approve — 审核通过
+### 3.5 /ilink-approve — 审核通过
 
 ```bash
-ilink-approve kcia-1520
+/ilink-approve kcia-1520
 ```
 
 **前置条件**：存在 STAGING 状态的文档
@@ -315,7 +315,7 @@ ilink-approve kcia-1520
 - design.master.md STAGING → `PENDING_CODER`
 - pm.master.md STAGING → `PENDING_DESIGNER`
 
-> **v1.6.0 起**：每次 `ilink-approve` 都会先在独立子上下文中运行 **Coach 子流程**（仅评估你这次"沟通输入"和"直接编辑设计"的协作质量），将一段单轮反馈追加到 `iLink-doc/<story>/<story>-feedback.md`，然后再推进 Status。Coach 反馈是写给你看的（不会被 Coder/QA 读取），你可以选择参考或忽略；Coach 子流程异常**不阻塞** Status 推进。详见 §4.6。
+> **v1.6.0 起**：每次 `/ilink-approve` 都会先在独立子上下文中运行 **Coach 子流程**（仅评估你这次"沟通输入"和"直接编辑设计"的协作质量），将一段单轮反馈追加到 `iLink-doc/<story>/<story>-feedback.md`，然后再推进 Status。Coach 反馈是写给你看的（不会被 Coder/QA 读取），你可以选择参考或忽略；Coach 子流程异常**不阻塞** Status 推进。详见 §4.6。
 
 ### 3.6 /ilink-coder — AI 编码
 
@@ -399,7 +399,7 @@ Qoder 回显：已使用 1850 credits
 
 **允许传 0**：当时无法查询（例如 CLI 卡住、网络问题、纯粹懒得查）时可以传 `0`，命令照常执行，文件正常写入但 delta 标注为"不可信"。**这是逃生通道，不要常态化使用**——0 值会污染整个 Story 的耗用统计。
 
-**不需要 usage-value 的命令**：`/ilink-pm`、`/ilink-design`、`/ilink-coder`、`/ilink-refine`、`ilink-approve`、`ilink-status` 等中间阶段命令完全不需要传第二个参数。我们只在"开始（init）"和"收尾审查（qa）"两个时点采样。
+**不需要 usage-value 的命令**：`/ilink-pm`、`/ilink-design`、`/ilink-coder`、`/ilink-refine`、`/ilink-approve`、`/ilink-status` 等中间阶段命令完全不需要传第二个参数。我们只在"开始（init）"和"收尾审查（qa）"两个时点采样。
 
 **字段含义**（如果你打开 `<story>-usage.md` 想理解）：
 - `节点`：`init` / `review-1` / `review-2` / …
@@ -475,23 +475,23 @@ cat iLink-doc/kcia-1520/kcia-1520-design.master.md
 
 如果设计有问题，**不要 approve**。有三种处理方式：
 
-**方式 A（推荐）：执行 ilink-refine 修订**
+**方式 A（推荐）：执行 /ilink-refine 修订**
 ```bash
 /ilink-refine kcia-1520
 # AI 会列出设计中的关键决策和待确认项
 # 你逐条告诉 AI 哪些要改，AI 在原文档上就地修改
-# 修订完成后执行 ilink-approve
+# 修订完成后执行 /ilink-approve
 ```
 
 **方式 B：你手动修改设计文档**
-直接编辑 `design.master.md`，改完后执行 `ilink-approve kcia-1520`。
+直接编辑 `design.master.md`，改完后执行 `/ilink-approve kcia-1520`。
 
 **方式 C：修改上游重跑**
 如果根因在 PM 的需求理解，修改需求定义后重新执行 `/ilink-pm` 和 `/ilink-design`。
 
 ### 4.6 Coach 协作复盘（v1.6.0 新增）
 
-每次 `ilink-approve` 都会触发一段 **Coach 协作复盘**，目的不是评价代码或设计本身，而是**评价你与 AI 协作的质量**——你提的问题精不精准？你定的范围严不严密？你直接编辑设计文档时，改动是否过界？
+每次 `/ilink-approve` 都会触发一段 **Coach 协作复盘**，目的不是评价代码或设计本身，而是**评价你与 AI 协作的质量**——你提的问题精不精准？你定的范围严不严密？你直接编辑设计文档时，改动是否过界？
 
 #### 4.6.1 Coach 在评什么
 
@@ -538,11 +538,11 @@ Coach 的写作纪律：**不献媚、不自我美化、不空话**。如果某�
 
 ---
 
-## 5. 修订 STAGING 文档——ilink-refine 实操
+## 5. 修订 STAGING 文档——/ilink-refine 实操
 
-### 5.1 什么是 ilink-refine
+### 5.1 什么是 /ilink-refine
 
-`ilink-refine` 是 iLink 的**修订对话协议**。当文档处于 STAGING 状态时，你可以通过它与 AI 逐条确认阻塞项，而**不需要重新生成整个文档**。
+`/ilink-refine` 是 iLink 的**修订对话协议**。当文档处于 STAGING 状态时，你可以通过它与 AI 逐条确认阻塞项，而**不需要重新生成整个文档**。
 
 ### 5.2 什么时候用
 
@@ -551,7 +551,7 @@ Coach 的写作纪律：**不献媚、不自我美化、不空话**。如果某�
 | PM 输出 STAGING，有 `[待确认]` 项 | ✅ 用 refine 逐条确认 |
 | Designer 输出 STAGING，你想微调设计决策 | ✅ 用 refine 讨论修改 |
 | QA 输出 STAGING（上游根因），需讨论处理路径 | ✅ 用 refine 讨论根因 |
-| 你已经知道答案，想直接推进 | ❌ 直接 `ilink-approve` |
+| 你已经知道答案，想直接推进 | ❌ 直接 `/ilink-approve` |
 | 需要大幅调整方向 | ❌ 修改上游重跑更合适 |
 
 ### 5.3 操作流程
@@ -570,13 +570,13 @@ Coach 的写作纪律：**不献媚、不自我美化、不空话**。如果某�
 #    → AI 记录为 [已确认 2026-04-14: 基础平台组确认本季度不升级 KDEncode]
 
 # 4. 所有阻塞项处理完后
-ilink-approve kcia-1520      # 正式推进状态
+/ilink-approve kcia-1520      # 正式推进状态
 ```
 
 ### 5.4 refine 的关键规则
 
 - **修订不是重生成**：AI 只修改被讨论的条目，保留文档其余内容不变
-- **状态不变**：refine 完成后文档仍是 STAGING，状态推进由 `ilink-approve` 负责
+- **状态不变**：refine 完成后文档仍是 STAGING，状态推进由 `/ilink-approve` 负责
 - **`[已确认]` 格式**：`[已确认 YYYY-MM-DD: <人类给出的决策依据>]`
 - **`[已确认]` 的效力**：下游角色 MUST 将其视为绑定约束，不再质疑
 
@@ -760,7 +760,7 @@ iLink-doc/
 
 `STAGING` 是 Designer 的**默认状态**，所有设计都需要你审核后手动推进。这不是异常，而是 Human-Gate 机制的正常表现。
 
-**解决**：审核设计后执行 `ilink-approve kcia-1520`。
+**解决**：审核设计后执行 `/ilink-approve kcia-1520`。
 
 ### 9.3 PM 输出了 STAGING，有 `[待确认]` 项
 
@@ -769,10 +769,10 @@ iLink-doc/
 # 推荐：使用 refine 逐条确认
 /ilink-refine kcia-1520
 # AI 会列出所有 [待确认] 项，你逐条给出决策
-# 完成后执行 ilink-approve
+# 完成后执行 /ilink-approve
 
 # 或者：直接推进（承担风险）
-ilink-approve kcia-1520
+/ilink-approve kcia-1520
 ```
 
 ### 9.4 Coder 改了不在设计清单里的文件
@@ -785,7 +785,7 @@ ilink-approve kcia-1520
 
 ### 9.5 QA 一直 FAIL_BACK_TO_CODER，循环修不好
 
-看 `ilink-status kcia-1520` 的回流次数：
+看 `/ilink-status kcia-1520` 的回流次数：
 - 1-2 次回流 → 正常，继续让 Coder 修
 - 3 次 → 触发熔断，人工介入（见第 6.2 节）
 
@@ -837,7 +837,7 @@ ilink-approve kcia-1520
 
 ```bash
 /ilink-design kcia-1520
-ilink-approve kcia-1520    # 看都不看就 approve
+/ilink-approve kcia-1520    # 看都不看就 approve
 ```
 
 **后果**：设计方向如果有偏差，Coder 按错误方向写的代码，QA 按错误基线审查，全链路错。Coder 写的代码越多，浪费越大。
@@ -882,7 +882,7 @@ ilink-approve kcia-1520    # 看都不看就 approve
 
 ```
 PM 输出 STAGING，有 3 个 [待确认] 项
-直接 ilink-approve，不看不管
+直接 /ilink-approve，不看不管
 Designer 基于猜测做设计
 Coder 基于猜测写代码
 最终发现猜错了，全部返工
@@ -1108,18 +1108,15 @@ iLink 框架升级会同步更新 `iLink/souls/*.soul.md`，但 `iLink/souls/plu
 
 ### 13.3 操作流程（Codex CLI 用户，v1.8.0 首发）
 
-```bash
-# 1. 终端预检（可选）：算 SHA1、报告 domain 覆盖情况
-bash .codex/commands/ilink-lightme kcia-1520
-```
+**第一步**：**打开一个全新的 Codex 会话**（不是接着 design 那个——同会话会护短，详见 §13.7）。
 
-**重要**：然后**打开一个全新的 Codex 会话**（不是接着 design 那个），输入：
+**第二步**：在 Codex 对话窗口输入：
 
 ```
-ilink-lightme kcia-1520
+/ilink-lightme kcia-1520
 ```
 
-AI 会以对抗（协作）人格拷问设计，每次问一个问题、给一个推荐答案。你逐条回答，AI 追问到底再换方向。
+AI 会自动加载 design.master.md、project-context.md、相关 domain 知识，校验 design 存在并算出 Upstream_SHA1（内部调用 `.codex/commands/ilink-lightme` 预检脚本，使用者不需要单独跑），然后以对抗（协作）人格拷问设计——每次问一个问题、给一个推荐答案。你逐条回答，AI 追问到底再换方向。
 
 ### 13.4 拷问结束后，AI 生成什么
 
@@ -1183,7 +1180,7 @@ lightme 提供约 **70% 的隔离效果**，剩余盲区靠你的领域经验补
 | `/ilink-pull <story>` | 从 Issue 系统拉取需求"描述"（v1.7.0 新增，可选） | bash 工具 | 更新 `<story>-requirement.md` 的"## 功能描述"区块 |
 | `/ilink-pm <story>` | 需求分析 | AI | `<story>-pm.master.md` |
 | `/ilink-design <story>` | 技术设计 | AI | `<story>-design.master.md` |
-| `ilink-approve <story>` | 审核推进 | 人类 | （更新 Metadata Status + Coach 子流程追加 `<story>-feedback.md`） |
+| `/ilink-approve <story>` | 审核推进 | 人类 | （更新 Metadata Status + Coach 子流程追加 `<story>-feedback.md`） |
 | `/ilink-coder <story>` | 编码 | AI | 源码文件 + `<story>-code.master.md` |
 | `/ilink-qa <story> <usage-value>` | 审查（v1.6.0：usage-value 必填） | AI | `<story>-review.master.md` + `<story>-usage.md` 追加 review-N 行 |
 
@@ -1200,10 +1197,11 @@ lightme 提供约 **70% 的隔离效果**，剩余盲区靠你的领域经验补
 | 命令 | 用途 | 谁执行 |
 |------|------|-------|
 | `/ilink-refine <story>` | 修订 STAGING 文档（逐条确认阻塞项） | AI + 人类 |
-| `ilink-status [story]` | 查看流水线状态与下一步建议 | 人类 |
+| `/ilink-lightme <story>` | Lightme：可选设计拷问（v1.8.0+，必须在全新 Host CLI 会话执行） | AI |
+| `/ilink-status [story]` | 查看流水线状态与下一步建议 | AI |
 | `/ilink-bootstrap` | 项目冷启动（生成项目知识库） | AI |
 
-**注**：`/ilink-*` 是 AI 执行的 slash command，`ilink-*`（无斜杠）是 shell 脚本。
+**注**：使用者统一在 Host CLI 对话窗口输入 `/ilink-*`。各平台 `.X/commands/` 下的 bash 脚本是 AI 内部调用的实现细节，使用者无需打开操作系统 shell。
 
 ---
 
@@ -1273,7 +1271,7 @@ lightme 提供约 **70% 的隔离效果**，剩余盲区靠你的领域经验补
                           ┌─────────────────┐
                           │   /ilink-pm      │     STAGING
                           │ （AI 需求分析）   │───→ /ilink-refine 确认
-                          └────────┬────────┘     → ilink-approve 推进
+                          └────────┬────────┘     → /ilink-approve 推进
                                    │
                           PENDING_DESIGNER
                                    │
@@ -1289,7 +1287,7 @@ lightme 提供约 **70% 的隔离效果**，剩余盲区靠你的领域经验补
                           ┌─────────────────┐
                      ⛔   │  人类审核设计     │
                           │  /ilink-refine   │ ← 可选：修订设计
-                          │  ilink-approve   │ ← 推进
+                          │  /ilink-approve   │ ← 推进
                           └────────┬────────┘
                                    │
                           PENDING_CODER

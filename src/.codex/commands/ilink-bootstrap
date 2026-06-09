@@ -23,6 +23,7 @@ framework_files=(
   "iLink/souls/qa.soul.md"
   "iLink/souls/domain.soul.md"
   "iLink/souls/coach.soul.md"
+  "iLink/souls/lightme.soul.md"
 )
 
 missing_framework=0
@@ -49,6 +50,7 @@ command_files=(
   "ilink-init"
   "ilink-approve"
   "ilink-status"
+  "ilink-lightme"
 )
 
 missing_commands=0

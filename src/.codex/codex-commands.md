@@ -11,18 +11,19 @@
 
 | 用户输入模式 | 角色/操作 | 示例 |
 |------------|---------|------|
-| `ilink-bootstrap` | Bootstrap（项目初始化） | `ilink-bootstrap` |
-| `ilink-init <story> <usage-value>` | 创建 Story 目录（v1.6.0：usage-value 必填） | `ilink-init jzjy-0001 12000` |
-| `ilink-pm <story>` | PM（产品经理） | `ilink-pm jzjy-0001` |
-| `ilink-design <story>` | Designer（设计师） | `ilink-design jzjy-0001` |
-| `ilink-coder <story>` | Coder（编码工程师） | `ilink-coder jzjy-0001` |
-| `ilink-qa <story> <usage-value>` | QA（质量审查员，v1.6.0：usage-value 必填） | `ilink-qa jzjy-0001 18500` |
-| `ilink-refine <story>` | 修订对话（STAGING 阻塞解除） | `ilink-refine jzjy-0001` |
-| `ilink-approve <story>` | Human-Gate 推进（含 Coach 子流程，v1.6.0） | `ilink-approve jzjy-0001` |
-| `ilink-domain <module>` | Domain Engineer（领域知识生成，认知模式） | `ilink-domain login-410301` |
-| `ilink-pull <story>` | 从 Issue System 拉取需求"描述"字段写入 requirement.md（纯工具，无 AI 介入） | `ilink-pull FS-AMO-5359` |
+| `/ilink-bootstrap` | Bootstrap（项目初始化） | `/ilink-bootstrap` |
+| `/ilink-init <story> <usage-value>` | 创建 Story 目录（v1.6.0：usage-value 必填） | `/ilink-init jzjy-0001 12000` |
+| `/ilink-pm <story>` | PM（产品经理） | `/ilink-pm jzjy-0001` |
+| `/ilink-design <story>` | Designer（设计师） | `/ilink-design jzjy-0001` |
+| `/ilink-coder <story>` | Coder（编码工程师） | `/ilink-coder jzjy-0001` |
+| `/ilink-qa <story> <usage-value>` | QA（质量审查员，v1.6.0：usage-value 必填） | `/ilink-qa jzjy-0001 18500` |
+| `/ilink-refine <story>` | 修订对话（STAGING 阻塞解除） | `/ilink-refine jzjy-0001` |
+| `/ilink-lightme <story>` | Lightme（设计拷问员，可选，v1.8.0+） | `/ilink-lightme jzjy-0001` |
+| `/ilink-approve <story>` | Human-Gate 推进（含 Coach 子流程，v1.6.0） | `/ilink-approve jzjy-0001` |
+| `/ilink-domain <module>` | Domain Engineer（领域知识生成，认知模式） | `/ilink-domain login-410301` |
+| `/ilink-pull <story>` | 从 Issue System 拉取需求"描述"字段写入 requirement.md（纯工具，无 AI 介入） | `/ilink-pull FS-AMO-5359` |
 
-> 匹配不区分大小写，`/ilink-pm`、`ilink-pm`、`ILINK-PM` 均视为同一命令。
+> 使用者**统一在 Codex 对话窗口输入 `/ilink-*`**。匹配规则不区分大小写，且为向后兼容历史对话，无斜杠形态 `ilink-pm` 也会被视为同一命令。
 
 ---
 
@@ -36,14 +37,14 @@
 
 ---
 
-## ilink-pm <story> — PM 角色
+## /ilink-pm <story> — PM 角色
 
 ### 准备
 - 读取 `iLink/souls/pm.soul.md`
 
 ### 前置检查
 - 读取 `iLink-doc/<story>/<story>-requirement.md`
-- 如果不存在，提示用户先执行 `bash .codex/commands/ilink-init <story> <usage-value>`（v1.6.0：usage-value 必填）
+- 如果不存在，提示用户在 Codex 对话窗口输入 `/ilink-init <story> <usage-value>`（v1.6.0：usage-value 必填）
 
 ### 关联领域知识检查
 - 检查需求定义中是否包含"关联领域知识"字段且指定了文件路径
@@ -79,7 +80,7 @@ Status: PENDING_DESIGNER
 
 ---
 
-## ilink-design <story> — Designer 角色
+## /ilink-design <story> — Designer 角色
 
 ### 准备
 - 读取 `iLink/souls/design.soul.md`
@@ -141,7 +142,7 @@ cp iLink-doc/<story>/<story>-design.master.md \
 
 ---
 
-## ilink-coder <story> — Coder 角色
+## /ilink-coder <story> — Coder 角色
 
 ### 准备
 - 读取 `iLink/souls/coder.soul.md`
@@ -200,7 +201,7 @@ Status: PENDING_QA
 
 ---
 
-## ilink-qa <story> <usage-value> — QA 角色
+## /ilink-qa <story> <usage-value> — QA 角色
 
 ### 参数解析
 
@@ -216,9 +217,9 @@ Status: PENDING_QA
 ```
 ❌ 缺少 usage-value 参数。请先在 Codex 中执行 /status 查看 "Context window" 的 used 值，然后以下列格式重试：
 
-  ilink-qa <story-id> <Context window used 数字>
+  /ilink-qa <story-id> <Context window used 数字>
 
-例如，/status 显示 "Context window: 18,500 / 200,000 (9%)"，则执行：ilink-qa kcia-1520 18500
+例如，/status 显示 "Context window: 18,500 / 200,000 (9%)"，则执行：/ilink-qa kcia-1520 18500
 
 **传入斜杠左侧的绝对 token 数（如 18500），不要传百分比（9）**——否则 Latest Delta 含义会被混淆。
 无法查询时允许传入 0（语义为"故意跳过"，文件正常追加但 delta 标注不可信）。
@@ -310,7 +311,7 @@ Status: <COMPLETED | FAIL_BACK_TO_CODER | STAGING>
 
 ---
 
-## ilink-refine <story> — STAGING 修订对话
+## /ilink-refine <story> — STAGING 修订对话
 
 > **触发时机**：当前 Story 存在 STAGING 文档且文档中有 `[待确认]` 项或其他阻塞原因。
 
@@ -321,7 +322,7 @@ Status: <COMPLETED | FAIL_BACK_TO_CODER | STAGING>
 3. `iLink/iLink-root-spec.md` §6.3（ilink-refine 修订协议）
 
 ### 前置检查
-- 检查 `iLink-doc/<story>/` 目录是否存在，不存在则提示用户先执行 `bash .codex/commands/ilink-init <story>`
+- 检查 `iLink-doc/<story>/` 目录是否存在，不存在则提示用户在 Codex 对话窗口输入 `/ilink-init <story> <usage-value>`
 
 ### 识别 STAGING 文档
 按优先级依次检查以下文档的 Metadata Status：
@@ -334,7 +335,7 @@ Status: <COMPLETED | FAIL_BACK_TO_CODER | STAGING>
 - design → `iLink/souls/design.soul.md`
 - review → `iLink/souls/qa.soul.md`
 
-如果没有 STAGING 文档，告知用户并建议执行 `bash .codex/commands/ilink-status <story>`。
+如果没有 STAGING 文档，告知用户并建议输入 `/ilink-status <story>`。
 
 ### 执行（修订模式）
 
@@ -372,20 +373,20 @@ Status: <COMPLETED | FAIL_BACK_TO_CODER | STAGING>
 修订完成后提示：
 ```
 修订完成，所有阻塞项已消解。
-下一步：在对话中执行 ilink-approve <story> 正式推进流水线（v1.6.0 起含 Coach 子流程）。
+下一步：在对话中执行 /ilink-approve <story> 正式推进流水线（v1.6.0 起含 Coach 子流程）。
 ```
 
 ---
 
-## ilink-lightme <story> — Lightme 角色（设计拷问员，v1.8.0+）
+## /ilink-lightme <story> — Lightme 角色（设计拷问员，v1.8.0+）
 
 > 自 iLink v1.8.0 引入。详见 Root Spec §4.8、`iLink/souls/lightme.soul.md`。
 
 ### 前置准备
 
-**重要**：lightme MUST 在**全新的 Codex 会话**中运行，不能接在 `ilink-design` 的同一会话后（会护短，见 Root Spec §4.8.5）。
+**重要**：lightme MUST 在**全新的 Codex 会话**中运行，不能接在 `/ilink-design` 的同一会话后（会护短，见 Root Spec §4.8.5）。
 
-可选预检：在终端执行 `bash .codex/commands/ilink-lightme <story>` 校验 design 存在 + 预算 design.master.md SHA1，然后在新 Codex 会话中输入 `ilink-lightme <story>` 触发本 AI 指令。
+在【全新的 Codex 会话】中输入 `/ilink-lightme <story>`。AI 会自动调用预检脚本（`.codex/commands/ilink-lightme`，内部细节）校验 design.master.md 存在并计算 Upstream_SHA1，然后按本章节执行拷问任务。
 
 ### 准备
 - 读取 `iLink/souls/universal.soul.md` 及其 plug（若存在）
@@ -447,11 +448,11 @@ SHA1 与时间戳 MUST 通过 shell 命令实际获取。预检脚本（`.codex/
 
 ---
 
-## ilink-approve <story> — Human-Gate 推进 + Coach 协作复盘（v1.6.0）
+## /ilink-approve <story> — Human-Gate 推进 + Coach 协作复盘（v1.6.0）
 
 > **目标**：以独立 subagent 评估人类在 PM/Design 修订段的输入质量与对 design.master.md 的直接编辑，写入 `<story>-feedback.md`，然后推进 STAGING Status。
 >
-> **前置准备**：在终端先执行 `bash .codex/commands/ilink-approve <story>` 进行 STAGING 文档校验与快照定位（仅做预检和提示，不修改 Status）。然后在对话中输入 `ilink-approve <story>` 触发本 AI 指令完成 Coach 子流程 + Status 推进。
+> **前置准备**：在 Codex 对话窗口输入 `/ilink-approve <story>`。AI 会自动调用预检脚本（`.codex/commands/ilink-approve`，内部细节）进行 STAGING 文档校验与快照定位，然后完成 Coach 子流程 + Status 推进。
 
 ### 准备
 - 读取 `iLink/iLink-root-spec.md` §4.7（Coach 角色契约）和 §6.4（ilink-approve 协议）
@@ -551,7 +552,7 @@ subagent 失败或返回为空时，**SHALL NOT** 阻塞 Status 推进。在 fee
 
 ---
 
-## ilink-domain <module> — Domain Engineer 角色（认知模式）
+## /ilink-domain <module> — Domain Engineer 角色（认知模式）
 
 > **定位**：Domain Engineer 不是交付流水线角色，不产生 STAGING / PENDING 等流水线状态。由资深人员主动触发，用于对重要模块生成领域知识文档。
 
@@ -603,7 +604,7 @@ subagent 失败或返回为空时，**SHALL NOT** 阻塞 Status 推进。在 fee
 
 ---
 
-## ilink-bootstrap — 项目初始化（Bootstrap）
+## /ilink-bootstrap — 项目初始化（Bootstrap）
 
 > **目标**：让当前项目具备运行 iLink 流水线的完整环境。执行完毕后，无论哪个 AI 平台（Claude / Codex / Qoder / Gemini）的用户打开本项目，都能被引导到 iLink 工作体系。
 >
@@ -611,7 +612,7 @@ subagent 失败或返回为空时，**SHALL NOT** 阻塞 Status 推进。在 fee
 
 ### 前置准备
 
-在终端执行 `bash .codex/commands/ilink-bootstrap` 进行预检查（检查框架文件是否齐备），然后在 Codex 对话中输入 `ilink-bootstrap` 触发本 AI 指令。
+在 Codex 对话窗口输入 `/ilink-bootstrap`。AI 会自动调用预检脚本（`.codex/commands/ilink-bootstrap`，内部细节）检查框架文件是否齐备，然后按本章节执行 Bootstrap。
 
 ---
 
@@ -645,7 +646,7 @@ subagent 失败或返回为空时，**SHALL NOT** 阻塞 Status 推进。在 fee
 
 > 本步骤自 iLink v1.8.0 引入。详见 Root Spec §4.7、Implementation Guide §1.5。
 
-通过 Bash 工具，确保 `iLink/souls/plugs/` 目录及 5 个角色空模板存在（**已存在则不覆盖**）：
+通过 Bash 工具，确保 `iLink/souls/plugs/` 目录及 6 个角色空模板存在（**已存在则不覆盖**）：
 
 1. `mkdir -p iLink/souls/plugs`
 2. 对 pm / design / coder / qa / domain / lightme 六个角色，逐一检查 `iLink/souls/plugs/<role>.project.plug.md` 是否存在
@@ -655,7 +656,7 @@ subagent 失败或返回为空时，**SHALL NOT** 阻塞 Status 推进。在 fee
 `universal.project.plug.md` SHALL NOT 由 bootstrap 主动创建（由项目按需自建，参见 Root Spec §4.7.5）。
 
 完成后在最终报告（步骤 10）中追加一行：
-"已确保 iLink/souls/plugs/ 下含 5 个角色 plug 模板；Leader 可按需填入项目级规则，universal.project.plug.md 按需自行创建。"
+"已确保 iLink/souls/plugs/ 下含 6 个角色 plug 模板；Leader 可按需填入项目级规则，universal.project.plug.md 按需自行创建。"
 
 ---
 
@@ -815,14 +816,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### 流水线命令
 
-ilink-init <story> <usage-value>  → 创建 Story 目录和需求模板（v1.6.0：usage-value 必填）
-ilink-pm <story>                  → PM：需求分析 → 业务合同
-ilink-design <story>              → Designer：技术设计 → 文件级任务清单
-ilink-coder <story>               → Coder：按设计编码 → 直接写入磁盘
-ilink-qa <story> <usage-value>    → QA：代码审查 → 审查报告（v1.6.0：usage-value 必填）
+所有命令均在 Codex 对话窗口输入（使用者无需打开操作系统 shell）：
 
-Designer 完成后默认需要人类审核（Human-Gate），审核通过后执行：
-`bash .codex/commands/ilink-approve <story>`
+/ilink-init <story> <usage-value>  → 创建 Story 目录和需求模板（v1.6.0：usage-value 必填）
+/ilink-pm <story>                  → PM：需求分析 → 业务合同
+/ilink-design <story>              → Designer：技术设计 → 文件级任务清单
+/ilink-lightme <story>             → Lightme：设计拷问员（可选，v1.8.0+；MUST 在全新会话执行）
+/ilink-approve <story>             → Human-Gate：审核推进 + Coach 协作复盘
+/ilink-coder <story>               → Coder：按设计编码 → 直接写入磁盘
+/ilink-qa <story> <usage-value>    → QA：代码审查 → 审查报告（v1.6.0：usage-value 必填）
+/ilink-status [story]              → 查看流水线状态
 ```
 
 ---
@@ -885,24 +888,17 @@ Designer 完成后默认需要人类审核（Human-Gate），审核通过后执�
 ### 快速开始
 
 1. 读取 `project-context.md` 了解项目
-2. 创建 Story：执行 `bash .codex/commands/ilink-init <story-id> <usage-value>`（v1.6.0：usage-value 必填，传入 `/status` 显示的 "Context window" used 值）
-3. 按流水线执行：`ilink-pm` → `ilink-design` → `ilink-approve` → `ilink-coder` → `ilink-qa <story> <usage-value>`
+2. 创建 Story：在 Codex 对话窗口输入 `/ilink-init <story-id> <usage-value>`（v1.6.0：usage-value 必填，传入 `/status` 显示的 "Context window" used 值）
+3. 按流水线执行：`/ilink-pm` → `/ilink-design` → `/ilink-approve` → `/ilink-coder` → `/ilink-qa <story> <usage-value>`
+4. 可选：在 `/ilink-design` 之后、`/ilink-approve` 之前，于**全新 Codex 会话**输入 `/ilink-lightme <story>` 触发设计拷问员（v1.8.0+）
 
 ### 角色触发
 
-当用户输入 `ilink-pm <story>`、`ilink-design <story>`、`ilink-coder <story>`、`ilink-qa <story>` 时：
+当用户输入 `/ilink-pm <story>`、`/ilink-design <story>`、`/ilink-coder <story>`、`/ilink-qa <story>`、`/ilink-lightme <story>` 时：
 
-**Codex CLI 用户**：AI 读取 `.codex/codex-commands.md` 中对应角色章节执行任务。Shell 脚本用于准备输入和流水线状态流转。
+**Codex CLI 用户**：AI 读取 `.codex/codex-commands.md` 中对应角色章节执行任务；`.codex/commands/*` 下的 bash 脚本是 AI 内部调用的实现细节，使用者无需直接运行。
 
 **其他 CLI 用户**：请先读取 `iLink/iLink-root-spec.md` §4（角色行为规范），然后读取对应的 Soul 文件执行任务。
-
-### Shell 工具
-
-| 命令 | 用途 |
-|------|------|
-| `bash .codex/commands/ilink-init <story> <usage-value>` | 创建 Story（v1.6.0：usage-value 必填） |
-| `bash .codex/commands/ilink-status [story]` | 查看状态 |
-| `bash .codex/commands/ilink-approve <story>` | 审核推进 |
 ```
 
 ---
@@ -961,13 +957,13 @@ Designer 完成后默认需要人类审核（Human-Gate），审核通过后执�
 3. 提交 Bootstrap 产出：
    git add project-context.md CLAUDE.md AGENTS.md iLink-doc/
    git commit -m "iLink bootstrap: 初始化项目协作环境"
-4. 创建第一个 Story：bash .codex/commands/ilink-init <story-id> <usage-value>
+4. 创建第一个 Story：在 Codex 对话窗口输入 `/ilink-init <story-id> <usage-value>`
    （v1.6.0：usage-value 必填。先在 Codex 中 /status 查看 "Context window" 的 used 值后传入）
 ```
 
 ---
 
-## ilink-pull <story> — Issue System 拉取（纯工具命令）
+## /ilink-pull <story> — Issue System 拉取（纯工具命令）
 
 > **定位**：纯 bash 工具命令，**无 AI 角色逻辑**。AI 收到该命令后**直接调用 bash 脚本**并原样转发输出，不参与任何业务/技术决策、不解析 JSON、不写文件。
 >
@@ -982,9 +978,9 @@ Designer 完成后默认需要人类审核（Human-Gate），审核通过后执�
 如果用户未提供 story-id，**MUST 拒绝执行**，向用户输出：
 
 ```
-❌ 用法：ilink-pull <story-id>
+❌ 用法：/ilink-pull <story-id>
 
-例如：ilink-pull FS-AMO-5359
+例如：/ilink-pull FS-AMO-5359
 ```
 
 ### 执行
@@ -1011,37 +1007,38 @@ bash .codex/commands/ilink-pull <story-id>
 
 ---
 
-## Shell 工具命令
+## AI 内部调用的脚本
 
-以下操作需在终端中执行（非 AI 角色任务）：
+下列脚本是 AI 在执行对应 slash 命令时**内部**通过 Bash 工具调用的实现细节。使用者不应当（也不需要）打开操作系统 shell 直接运行它们——使用者只在 Codex 对话窗口输入 `/ilink-*`。
 
-| 命令 | 用途 |
-|------|------|
-| `bash .codex/commands/ilink-bootstrap` | Bootstrap 预检查（然后执行 `ilink-bootstrap`） |
-| `bash .codex/commands/ilink-init <story> <usage-value>` | 创建 Story 目录和需求模板（v1.6.0：usage-value 必填，传入 `/status` 显示的 "Context window" used 值） |
-| `bash .codex/commands/ilink-status [story]` | 查看流水线状态 |
-| `bash .codex/commands/ilink-approve <story>` | ilink-approve 预检（v1.6.0 起仅校验 STAGING 文档与定位 design 快照，然后在对话中执行 `ilink-approve <story>` 完成 Coach + Status 推进） |
-| `bash .codex/commands/ilink-pull <story>` | 从 Issue System 拉取需求"描述"字段写入 requirement.md 的"## 功能描述"区块（纯 bash 工具，无 AI 介入；用户在对话输入 `ilink-pull <story>` 时 AI 直接调用此脚本） |
+| 内部脚本 | 由哪个 slash 命令触发 | 用途 |
+|---------|-------------------|------|
+| `.codex/commands/ilink-bootstrap` | `/ilink-bootstrap` | 预检框架文件齐备性 |
+| `.codex/commands/ilink-init` | `/ilink-init <story> <usage>` | 创建 Story 目录和需求模板 |
+| `.codex/commands/ilink-status` | `/ilink-status [story]` | 查看流水线状态 |
+| `.codex/commands/ilink-approve` | `/ilink-approve <story>` | 预检 STAGING 文档与定位 design 快照（AI 随后完成 Coach + Status 推进） |
+| `.codex/commands/ilink-lightme` | `/ilink-lightme <story>` | 校验 design 存在并计算 Upstream_SHA1（AI 随后执行拷问） |
+| `.codex/commands/ilink-pull` | `/ilink-pull <story>` | 从 Issue System 拉取需求"描述"字段写入 requirement.md（纯工具命令，无 AI 介入；AI 直接转发输出） |
 
 ---
 
 ## 流水线状态机
 
 ```
-ilink-init → 需求定义
+/ilink-init → 需求定义
     |
-ilink-pm → pm.master.md
-    ├─ PENDING_DESIGNER → ilink-design
-    └─ STAGING → ilink-refine（逐条解除阻塞）→ ilink-approve → PENDING_DESIGNER
+/ilink-pm → pm.master.md
+    ├─ PENDING_DESIGNER → /ilink-design
+    └─ STAGING → /ilink-refine（逐条解除阻塞）→ /ilink-approve → PENDING_DESIGNER
                                                                ↓
-ilink-design → design.master.md (STAGING，Human-Gate)
-    ├─ ilink-refine（有 [待确认] 项时可用）→ 解除后 ilink-approve → PENDING_CODER
-    └─ ilink-approve（人类直接审核通过）→ PENDING_CODER
+/ilink-design → design.master.md (STAGING，Human-Gate)
+    ├─ /ilink-refine（有 [待确认] 项时可用）→ 解除后 ilink-approve → PENDING_CODER
+    └─ /ilink-approve（人类直接审核通过）→ PENDING_CODER
                                           ↓
-ilink-coder → code.master.md + source files (PENDING_QA)
+/ilink-coder → code.master.md + source files (PENDING_QA)
     |
-ilink-qa → review.master.md
+/ilink-qa → review.master.md
     ├─ COMPLETED → Done
-    ├─ FAIL_BACK_TO_CODER → 回流 ilink-coder
-    └─ STAGING → ilink-refine（讨论上游根因，明确修改路径）
+    ├─ FAIL_BACK_TO_CODER → 回流 /ilink-coder
+    └─ STAGING → /ilink-refine（讨论上游根因，明确修改路径）
 ```
