@@ -1140,7 +1140,7 @@ Timestamp 和 SHA1 MUST 通过 shell 命令实际获取（按 §5.4 规则），
 |------|------------------|
 | Codex CLI | ✅ v1.8.0 首发 |
 | Claude CLI | ⏳ 待 Codex 验证后跟进 |
-| Qoder CLI | ⏳ 待 Codex 验证后跟进 |
+| Qoder CLI | ✅ v1.8.0 首发 |
 | Gemini CLI | ⏳ 待 Codex 验证后跟进 |
 
 跨平台跟进**无固定 deadline**。期间非 Codex 平台用户可通过 Codex 跑 lightme，或在 approve 前由 Leader 手动审视设计。
@@ -1477,6 +1477,7 @@ iLink 的每个角色 MUST 由人类手动触发：
 │   ├── ilink-refine
 │   ├── ilink-domain
 │   ├── ilink-pull
+│   ├── ilink-lightme
 │   └── ilink-bootstrap
 ├── .qoder/skills/                     ← Qoder CLI 平台（Slash Command）
 │   ├── ilink-init/SKILL.md            ← Story 初始化（AI 薄壳）
@@ -1489,6 +1490,7 @@ iLink 的每个角色 MUST 由人类手动触发：
 │   ├── ilink-refine/SKILL.md          ← STAGING 修订对话
 │   ├── ilink-domain/SKILL.md          ← 认知模式
 │   ├── ilink-pull/SKILL.md            ← Issue System 拉取（AI 薄壳）
+│   ├── ilink-lightme/SKILL.md        ← Lightme 可选拷问（v1.8.0+）
 │   └── ilink-bootstrap/SKILL.md       ← 项目冷启动
 ├── .gemini/commands/                   ← Gemini CLI 平台（全部为 TOML 命令文件）
 │   ├── ilink-init.toml
