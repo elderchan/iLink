@@ -1,7 +1,7 @@
 # iLink Root Spec
 
 > **文档编号**: ILINK-ROOT-SPEC
-> **版本**: v1.7.0
+> **版本**: v1.8.0
 > **作者**: 周本高
 > **日期**: 2026-05-27
 > **文档类型**: 协议规范（Protocol Specification）
@@ -854,6 +854,294 @@ Step 6  Parent AI 写入 feedback.md
 
 ---
 
+## 4.7 Soul 层级与项目级补充（Plug）体系
+
+> 自 iLink v1.8.0 引入。本节定义 Soul 的两层叠加机制，让框架升级与项目定制解耦。
+
+### 4.7.1 概览（使用者效果）
+
+iLink 框架自带的 soul 文件（`iLink/souls/<role>.soul.md`）承载通用的角色行为规则，适用于所有使用 iLink 的项目。每个项目通常还有自己的项目级约束（如金融场景的"金额字段必须用 BigDecimal"、"认证模块禁止跨边界访问资金账户表"）。
+
+为支持这类项目级约束而不污染框架文件，Soul 体系采用两层叠加：
+
+```
+框架级 soul       ← iLink 自带，跟随框架升级
+   +
+项目级 plug       ← 项目自维护，SVN commit 后全团队生效
+   = AI 角色实际执行时的完整约束
+```
+
+使用者（Leader）在 `iLink/souls/plugs/<role>.project.plug.md` 中添加本项目对该角色的补充规则。Framework 升级时，框架级 soul 跟随更新，项目级 plug **不受影响**，项目定制内容不会被冲掉。
+
+### 4.7.2 加法语义（Additive Semantics）
+
+两层 soul 是**加法关系**，不是覆盖关系。
+
+AI 角色加载时，MUST 同时持有 `<role>.soul.md` 与 `plugs/<role>.project.plug.md` 两份内容，**均视为约束**。两份内容在 AI 上下文中并列存在，框架不在文件之间做合并、不在规则之间做仲裁。
+
+设计意图：plug 是 soul 的**补充**——
+- **ADD**：增加 soul 未涉及的项目特有规则（如行业术语、模块边界）
+- **REFINE**：细化 soul 的通用规则到本项目的具体口径（如把"数值类型"细化为"金额用 BigDecimal"）
+- **TIGHTEN**：在 soul 基础上加严约束（如禁止 soul 允许的某些操作）
+
+框架**不主动检测** plug 与 soul 之间是否存在冲突，**不主动仲裁**优先级，**不引入**"红线"、"项目级优先"、"框架级优先"等任何裁决机制。
+
+如果项目方在 plug 中写入与 soul 直接矛盾的硬冲突规则（如 soul 说 MUST X、plug 说 MUST NOT X），AI 实际行为**不在协议保证范围内**，后果由项目方承担。项目方有责任保证 plug 中的规则与 soul 兼容。
+
+框架在此采取轻量、不强制立场：iLink 是开源框架，提供机制而非家长式管控。
+
+### 4.7.3 加载顺序
+
+各角色 AI 在准备阶段（读取自己的 soul 之前 / 之后均可，但 MUST 在开始本次任务推理之前）按以下顺序加载完整约束集：
+
+1. `iLink/souls/universal.soul.md`（全局规范）
+2. `iLink/souls/plugs/universal.project.plug.md`（若文件存在且非空）
+3. `iLink/souls/<role>.soul.md`（本角色框架规范，`<role>` ∈ {pm, design, coder, qa, domain, lightme}）
+4. `iLink/souls/plugs/<role>.project.plug.md`（若文件存在且非空）
+
+判定"非空"：文件存在且至少包含一条规则内容（不仅是注释、标题、分隔线）。若文件不存在或为空模板，按仅有框架级 soul 执行，**不报错、不警告**。
+
+### 4.7.4 Plug 文件不参与流水线契约链
+
+Plug 文件：
+- **不是** Master Doc
+- **不参与** Status 状态机
+- **不在** PM/Designer/Coder/QA 的契约链上（不作为上游、不作为下游）
+- 仅作为角色加载时的附加输入（类似 universal.soul.md 之于各角色）
+
+因此 plug 文件 SHALL NOT 携带 Metadata 印章（Protocol_Version / Role / AI_Vendor / AI_Model / Current_Timestamp / Upstream_SHA1 / Target_Files / Status）。Plug 文件的更新追溯由 SVN/Git 历史承担。
+
+### 4.7.5 universal plug 的特殊性
+
+`universal.project.plug.md` 仅在项目有**跨所有角色**的通用约束时创建，否则不需要存在。各 role plug 优先承载本角色规则；universal plug 用于真正横切全部角色的项目级规则（如全局术语表、强制编码语言版本、全项目禁止某类操作等）。
+
+由 `/ilink-bootstrap` 创建空模板时，**仅创建** pm / design / coder / qa / domain / lightme 六个角色的空 plug 模板；`universal.project.plug.md` SHALL NOT 由 bootstrap 主动创建，由项目按需自建。
+
+### 4.7.6 与现有不变量的关系
+
+§4 各角色规范中的硬约束（如 §3.4 QA 3 次熔断、§4.3 Coder 只能修改 design [TASK_ALLOCATION] 列出的文件、§4.6 Coach 与交付链隔离），以及 §7 Agent 通用行为协议中的禁止行为，与本节描述的 plug 机制**正交**。
+
+按 4.7.2 的加法语义，这些约束是框架级 soul / 框架协议层的规则，项目 plug **不主动覆盖也不被主动保护**——若项目方在 plug 中写入违反这些约束的内容，框架不强制阻止，但属于项目方放弃了框架提供的安全网，后果自负。
+
+**不引入红线机制是经过权衡的选择**：轻量、开源、给项目方完全的灵活度。项目方在 plug 中应当审慎避免与框架硬约束冲突；具体哪些约束属于"避免冲突"范围，可参见 CLAUDE.md "Framework invariants — do not break" 一节列出的清单。
+
+---
+
+## 4.8 Lightme 角色规范
+
+> 自 iLink v1.8.0 引入。本节定义 design → approve 之间的可选拷问机制及其契约。
+> 行为规则与 prompt 模板见 `iLink/souls/lightme.soul.md`。
+
+### 4.8.1 概览（使用者效果）
+
+`/ilink-lightme <story-id>` 是一个**可选**的 Slash Command，由 Leader 在 design 完成后、approve 之前手动触发。它做三件事：
+
+1. **照亮盲区**：由独立视角拷问设计，照亮 Leader 可能没看到的隐藏假设、跨模块依赖、术语歧义、边界与一致性问题
+2. **就地沉淀**：拷问中澄清的术语和决策，按 Human-Gate 经 Leader 确认后写回项目文档（`project-context.md` / 已存在的 `<模块>-domain-knowledge.md`）
+3. **留痕审计**：生成 `<story-id>-lightme.md`，记录本次照亮的盲区及 Leader 的处置决定
+
+lightme 是 advisory（顾问性）：**不改变 Status**、**不阻塞 approve**。Leader 自主决定何时触发、是否参考报告做 approve 决策。高风险 Story 建议触发，简单 Story 可跳过。
+
+### 4.8.2 在流水线中的位置（维护者实现）
+
+```
+/ilink-design → STAGING → [可选 /ilink-lightme] → /ilink-approve
+```
+
+- lightme **不改变 Status**：design.master.md 仍保持 STAGING
+- approve **不依赖** lightme：approve 既不检测 lightme 是否跑过，也不读 lightme.md
+- 与 `/ilink-refine`：互补、独立。refine 解决 STAGING 中的 `[待确认]` 项（已有决策答案，Leader 逐条确认）；lightme 挑出尚未被发现的盲区（无决策答案，需 Leader 现场判断）。二者顺序由 Leader 决定。
+- 与 **Coach**：**互不读对方产物**。Coach 仍只看 approve 所在会话的对话窗口 + design diff，**不读** lightme.md；lightme 也 SHALL NOT 读 `<story>-feedback.md`。接受 ~70% 协作样本采集盲点——lightme 在新会话执行，Coach 看不到这次拷问对话。
+
+### 4.8.3 内核来源（维护者实现）
+
+lightme 的拷问内核直接采用 Matt Pocock 官方 `grill-with-docs` skill 的机制（`github.com/mattpocock/skills`，路径 `engineering/grill-with-docs`）。
+
+SHALL NOT 参照 `stevegsax/grill-me` 等第三方衍生版（289 行改写版，与原版差异较大）。
+
+iLink 在 grill-with-docs 内核之上的增量约束：
+- 三类 md 写入边界（§4.8.10）
+- lightme.md Metadata 印章（§4.8.11）
+- 大型代码库检索局限标注（§4.8.8）
+- 输出禁结论（§4.8.13）
+
+### 4.8.4 触发条件
+
+仅 Leader 手动触发：`/ilink-lightme <story-id>`。AI **SHALL NOT** 自动判定何时该触发；下游角色（Coder、QA）SHALL NOT 因 lightme 是否跑过而改变行为。
+
+### 4.8.5 隔离机制（AI 执行规范）
+
+**新会话执行**：MUST 在一个全新的 Host CLI 会话中运行，不能接在 `/ilink-design` 的同一会话后。新会话上下文为空，AI 不知道这份 design 是"自己"刚写的——对它而言这是一份外来的、待审视的文档，切断护短的承诺链。
+
+**对抗（协作）人格**：在 prompt 中赋予敏锐、不留情面但平等协作的评审专家角色（详见 `lightme.soul.md`）。
+
+**诚实标注隔离能力**：单模型隔离切断"记忆层面"的护短，但**切不断模型自身的盲区**——同一个底层模型写 design 时没想到的结构性盲点，新会话大概率仍想不到。lightme 提供约 70% 的隔离效果，剩余盲区由 Leader 的领域经验在 approve 时补足。lightme 的产出是"给人的弹药"，**不是"替代人的审查"**。
+
+lightme **不需要** sandbox（纯对话/推理 + 文档读写，不执行不可信代码）。
+
+### 4.8.6 输入（AI 执行规范）
+
+- **MUST 读**：`iLink-doc/<story-id>/<story-id>-design.master.md`
+- **MUST 读**：`project-context.md`（仅主体内容；按 §7.8 自动跳过 Issue System AI 隔离块）
+- **SHOULD 读**：`iLink-doc/domain/<相关模块>-domain-knowledge.md`（若需求或 design 涉及该模块）
+- **MAY 探索**：源代码（用 Host CLI 检索能力，遵守 §4.8.8 检索局限标注）
+
+若相关模块无 domain 文件，进入**降级模式**：lightme 提示 Leader 建议先跑 `/ilink-domain` 沉淀该模块，并询问是否继续。Leader 选择继续时，lightme 标注本次为"降级模式"。
+
+### 4.8.7 拷问内核（AI 执行规范）
+
+四原则（与 grill-with-docs 一致）：
+
+1. **无情追问，走决策树分支**：无情地拷问设计的每个方面，沿设计树每个分支往下走，逐一解决决策之间的依赖
+2. **一次一个问题**：每次只抛出一个问题，等 Leader 回答后再继续；绝不一次列一堆
+3. **每个问题给推荐答案**：提问时同时给出自己推荐的答案，让 Leader 可以快速确认（说"是"即可）
+4. **能查代码就查代码**：如果一个问题可以通过探索代码库回答，就去查代码，而不是问 Leader
+
+增量能力：
+- **查代码同时找文档**：探索代码库时，同时寻找 `project-context.md` 与相关模块 `domain-knowledge.md` 作为知情来源
+- **术语拷问**：当 Leader 用的术语与 `project-context` / `domain` 文档定义冲突，或模糊一词多义时，立刻挑战，逼出精确定义
+- **具体场景压测**：用具体场景压测领域关系，逼 Leader 在概念边界上说精确
+- **代码交叉验证**：当 Leader 陈述某功能如何工作时，检查代码是否一致，发现矛盾就指出
+
+**行业特化**（如金融术语清单、合规要求、特定高频维度）**SHALL NOT** 写入框架级 prompt；应通过项目自维护的 `iLink/souls/plugs/lightme.project.plug.md`（按 §4.7 加法语义机制）提供。
+
+### 4.8.8 检索局限标注（AI 执行规范）
+
+大型代码库（无法全量载入上下文）下，文本检索（grep / 关键字搜索）有局限——反射、动态 SQL、配置映射、注解派发等方式的依赖无法通过文本检索发现。
+
+lightme 在用代码回答依赖类问题时，MUST：
+- 区分**阳性结论**（"找到了，确认存在 X"，相对可信）与**阴性结论**（"查了，未找到 X"，**不等于不存在**）
+- 阴性结论 MUST 标注局限：例如 "通过检索 `token.userId` 找到 N 处引用，反射 / 动态 SQL / 注解派发等方式无法检出，此结论可能不完整"
+
+### 4.8.9 追问策略（AI 执行规范）
+
+**主导**：追问方向 MUST 从本次 design + project-context + domain 的具体内容**动态识别**追问分支。SHALL NOT 套用预定义通用清单。
+
+**辅助**：对常见高频维度做"是否涉及"评估扫描（一致性 / 幂等 / 跨模块依赖 / 异常降级路径等）：
+- 涉及 → 深挖
+- 不涉及 → 明确跳过，**SHALL NOT 为凑数强行提问**
+
+强制的是"评估这个维度是否相关"，**不是**"必须提出这个维度的问题"。评估结论可以是"本次不涉及，跳过"。
+
+### 4.8.10 输出三类 md 与写入边界（AI 执行规范）
+
+lightme 运行过程中可能写三类性质完全不同的 md 文件：
+
+| 类别 | 文件 | 性质 | 是否新建 | Human-Gate |
+|---|---|---|---|---|
+| 第一类 | `<story-id>-lightme.md` | 本次拷问过程与处置记录（审计） | 是，每 Story 新建 | 否 |
+| 第二类 | `project-context.md` | 项目知识库，就地更新 | 否 | 是，每次写前确认 |
+| 第三类 | `<模块>-domain-knowledge.md` | 模块领域知识，就地更新 | **绝不创建** | 是，每次写前确认 |
+
+写入边界（硬约束）：
+
+- **project-context.md**：MUST 跳过 §7.8 定义的 AI 隔离块（Issue System 集成块等），**SHALL NOT** 触碰该块内任何内容
+- **domain-knowledge.md**：仅就地更新**已存在**的文件。10 章中具体章节可改与否由 Human-Gate 时 Leader 判定（lightme 默认可触碰所有章节，Leader 是最终决策者）
+- **domain-knowledge.md 不存在**：**SHALL NOT 创建**。将澄清内容写入 lightme 报告的"建议补充 domain"区块，转交 `/ilink-domain` 走正规审核流程
+
+**绝对禁止创建不存在的 domain-knowledge.md**——它是 `/ilink-domain` 的专属产物，有严格的生成流程（资深工程师引导、10 章标准结构、资深审核确认）。lightme 是审查者，不是知识沉淀者。
+
+形成的闭环：
+
+```
+lightme 拷问暴露术语盲区
+        ↓
+该模块 domain 存在？
+        ├── 存在 → 就地更新（Human-Gate 确认后写入）
+        └── 不存在 → 绝不创建
+                     ↓
+              写进 lightme 报告"建议补充 domain"区块
+              Leader 后续触发 /ilink-domain 走正规流程
+                     ↓
+              下次 lightme 可更新它
+```
+
+### 4.8.11 lightme.md Metadata 印章
+
+作为审计性辅助文档，`<story-id>-lightme.md` MUST 在文件末尾包含以下 Metadata 印章子集：
+
+```
+---
+# ILINK-PROTOCOL-METADATA
+Protocol_Version: v1.8.0
+Role: LIGHTME
+AI_Vendor: <Host CLI 品牌>
+AI_Model: <模型 ID 或工具版本>
+Current_Timestamp: <TZ=Asia/Shanghai date +%Y-%m-%dT%H:%M:%S+08:00>
+Upstream_SHA1: <shasum iLink-doc/<story-id>/<story-id>-design.master.md 第一列>
+Status: ADVISORY
+---
+```
+
+字段说明：
+
+- `Role`：固定填 `LIGHTME`（角色枚举新增值）
+- `Upstream_SHA1`：MUST 锚定 `design.master.md`（主上游）当前内容的 SHA1，用于审计验证报告对应哪一版 design
+- `Status`：固定填 `ADVISORY`，表明本文件**不参与流水线状态机**（§5.3 不适用）
+- `Target_Files`：lightme 不产生源码，本字段省略或留空
+
+Timestamp 和 SHA1 MUST 通过 shell 命令实际获取（按 §5.4 规则），SHALL NOT 使用占位符。
+
+### 4.8.12 lightme.md 报告结构
+
+每份 `<story-id>-lightme.md` MUST 包含以下区块（按顺序）：
+
+```markdown
+# Lightme Report: <story-id>
+日期：YYYY-MM-DD
+审视对象：design.master.md
+知情来源：project-context.md + <模块>-domain-knowledge.md + 源码检索
+模式：[完整 / 降级（缺 domain 文档）]
+
+---
+
+## 拷问过程
+（逐轮落盘，每轮含问题 + 推荐答案 + Leader 回答 + 现状依据）
+
+## 被照亮的盲区与处置（审计核心区）
+每个盲区 MUST 标三态之一：
+- **RESOLVED**：拷问中澄清，设计已能覆盖或已就地更新文档
+- **TO-FIX**：暴露设计缺陷，需回 design 修改后再 approve
+- **ACCEPTED-RISK**：Leader 主动判断可接受、本次跳过——**MUST 写明 Leader 接受理由**（审计关键留痕）
+
+## 本次已更新的文档（经 Leader 确认）
+列出 project-context.md 和 domain-knowledge.md 的修改清单。
+
+## 建议补充 domain（转交 /ilink-domain）
+列出模块名 + 澄清内容 + 建议 Leader 触发的命令。
+
+## 给 Leader 的提示
+- 本次模式：完整 / 降级
+- 以上盲区待 Leader 在 approve 时判断
+- TO-FIX 项需在 design 修正后再 approve
+- ACCEPTED-RISK 项已留痕，approve 即代表接受这些已知风险
+- lightme 不对设计是否通过做结论
+
+---
+# ILINK-PROTOCOL-METADATA
+（§4.8.11 印章）
+```
+
+### 4.8.13 硬性输出限定（AI 执行规范）
+
+- **SHALL NOT** 下"通过 / 不通过"结论。结论永远由 Leader 在 approve 时下。剥夺 lightme 下结论的权力，防止它走过场制造虚假安全感。
+- **MUST** 照亮至少 3 个具体的、有现状依据的盲区，除非 Leader 主动确认所有方向均已充分覆盖
+- **SHALL NOT** 出现 "通过"、"可以进入编码"、"设计无问题"、"建议批准" 等结论性表述
+- 每个盲区 SHOULD 标注现状依据（来自 design / project-context / domain / 代码的哪一部分）
+
+### 4.8.14 跨平台跟进现状（v1.8.0 首发）
+
+| 平台 | lightme 支持状态 |
+|------|------------------|
+| Codex CLI | ✅ v1.8.0 首发 |
+| Claude CLI | ⏳ 待 Codex 验证后跟进 |
+| Qoder CLI | ⏳ 待 Codex 验证后跟进 |
+| Gemini CLI | ⏳ 待 Codex 验证后跟进 |
+
+跨平台跟进**无固定 deadline**。期间非 Codex 平台用户可通过 Codex 跑 lightme，或在 approve 前由 Leader 手动审视设计。
+
+---
+
 ## 5. Metadata 协议
 
 ### 5.1 格式
@@ -863,7 +1151,7 @@ Step 6  Parent AI 写入 feedback.md
 ```
 ---
 # ILINK-PROTOCOL-METADATA
-Protocol_Version: v1.7.0
+Protocol_Version: v1.8.0
 Role: <PM / DESIGNER / CODER / QA>
 AI_Vendor: <执行本角色的 Host CLI 品牌名，如 Claude / Qoder / Codex / Gemini>
 AI_Model: <工具版本或底层模型；若 Host CLI 允许披露则填底层模型（如 claude-sonnet-4-6），否则填工具版本号>
@@ -1430,7 +1718,7 @@ Story 隔离**不保证**：
 
 ---
 # ILINK-PROTOCOL-METADATA
-Protocol_Version: v1.7.0
+Protocol_Version: v1.8.0
 Role: PM
 AI_Vendor: <Host CLI 品牌名，如 Claude / Qoder / Codex / Gemini>
 AI_Model: <工具版本或底层模型 ID>
@@ -1483,7 +1771,7 @@ Status: PENDING_DESIGNER
 
 ---
 # ILINK-PROTOCOL-METADATA
-Protocol_Version: v1.7.0
+Protocol_Version: v1.8.0
 Role: DESIGNER
 AI_Vendor: <Host CLI 品牌名，如 Claude / Qoder / Codex / Gemini>
 AI_Model: <工具版本或底层模型 ID>
@@ -1523,7 +1811,7 @@ Status: STAGING
 
 ---
 # ILINK-PROTOCOL-METADATA
-Protocol_Version: v1.7.0
+Protocol_Version: v1.8.0
 Role: CODER
 AI_Vendor: <Host CLI 品牌名，如 Claude / Qoder / Codex / Gemini>
 AI_Model: <工具版本或底层模型 ID>
@@ -1561,7 +1849,7 @@ Status: PENDING_QA
 
 ---
 # ILINK-PROTOCOL-METADATA
-Protocol_Version: v1.7.0
+Protocol_Version: v1.8.0
 Role: QA
 AI_Vendor: <Host CLI 品牌名，如 Claude / Qoder / Codex / Gemini>
 AI_Model: <工具版本或底层模型 ID>

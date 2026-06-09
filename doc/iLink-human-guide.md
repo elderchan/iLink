@@ -990,6 +990,189 @@ Domain Knowledge 对交付流水线是**可选增强**：
 
 ---
 
+## 12. 项目级角色规则补充（Plug）
+
+> 自 iLink v1.8.0 引入。协议层定义见 Root Spec §4.7。
+
+### 12.1 解决的问题
+
+iLink 框架自带的 soul 文件（`iLink/souls/<role>.soul.md`）是**通用规则**，适合所有项目。但每个金融项目的角色约束都有差异：
+
+- 交易项目："金额必须 BigDecimal，禁 double"
+- 清算项目："轧差结果必须按 T+0 入账"
+- 认证项目："禁止跨边界访问资金账户表"
+
+如果这些规则写进 iLink 自带的 soul，iLink 升级时会被覆盖。如果让大家口头约定，新人入职没人告诉就踩坑。
+
+**Plug 机制**让你把项目级规则写在独立文件里，放在 `iLink/souls/plugs/` 下，跟随项目源码 commit，新成员 SVN update 即获，framework 升级也不会动这些文件。
+
+### 12.2 Plug 文件在哪、长什么样
+
+`/ilink-bootstrap` 跑过之后（或框架 v1.8.0+ 复制进项目时），你的项目里会出现：
+
+```
+iLink/souls/plugs/
+├── pm.project.plug.md         ← 空模板，等你填
+├── design.project.plug.md     ← 同上
+├── coder.project.plug.md      ← 同上
+├── qa.project.plug.md         ← 同上
+├── domain.project.plug.md     ← 同上
+└── lightme.project.plug.md    ← 同上（v1.8.0+，放行业术语/合规维度等）
+```
+
+> `universal.project.plug.md` 按需自建——只有"跨所有角色"的项目规则才放进去（如全项目术语表、强制语言版本等）。Bootstrap 不会主动创建它。
+
+每个文件顶部有注释说明用途和维护方式，你直接在分隔线下方按主题分区填规则。
+
+### 12.3 一个简单例子（coder.project.plug.md）
+
+```markdown
+# coder.project.plug.md
+# 项目级补充规则（对 iLink/souls/coder.soul.md 的加法补充）
+# ...（顶部注释保留）
+
+---
+
+## 金额与数值
+所有涉及金额的字段必须使用 BigDecimal，禁止 double 或 float。
+交易金额保留 4 位小数，费率 6 位，汇率 8 位。
+
+## 跨模块边界
+认证模块禁止直接读写资金账户表，必须通过 FundService 接口。
+
+## 配置外置
+时间参数、阈值、开关必须从配置中心读取，禁止硬编码。
+```
+
+填完 commit，全团队 update 后，各角色 AI 执行时自动加载这份补充，无需在每次对话里提醒。
+
+### 12.4 加法语义——重要的认知
+
+Plug 是 soul 的"**加法补充**"，不是覆盖。AI 加载时同时持有 framework soul + 你的 plug，**两份都视为约束**。你应该把 plug 写成 soul 的：
+
+- **ADD**（增加规则）：soul 没说的，你这里加（如"金额必须 BigDecimal"）
+- **REFINE**（细化规则）：soul 说"用项目默认数值类型"，你细化为"金额用 BigDecimal"
+- **TIGHTEN**（加严约束）：soul 允许某操作，你禁止它
+
+### 12.5 framework 不仲裁冲突，后果你自负
+
+如果你在 plug 里写了**直接违反** framework soul 的规则（比如 soul 说"QA 失败 3 次熔断"，你 plug 写"失败 5 次再熔断"），AI 实际按哪条执行**不在 iLink 协议保证范围内**。原因：iLink 是轻量、开源框架，选择不做家长式管控，不仲裁冲突。
+
+实务上建议：
+
+- 加 plug 前，先翻一下对应 soul，确认你写的是补充而非反对
+- 涉及 CLAUDE.md "Framework invariants — do not break" 列出的事项（QA 熔断、Coder 写盘、认知/交付隔离、Issue System 隔离块），**强烈建议不要在 plug 里覆盖**——你绕过的是 iLink 提供给你的安全保障
+- 项目方对 plug 内容自负
+
+### 12.6 framework 升级时 plug 不动
+
+iLink 框架升级会同步更新 `iLink/souls/*.soul.md`，但 `iLink/souls/plugs/` 下的文件**不会被框架升级动**。你 SVN commit 进去的项目规则，升级后照常生效。
+
+### 12.7 实操流程
+
+1. 跑 `/ilink-bootstrap`（或升级到 v1.8.0+ 的 iLink 框架版本）→ 空模板自动生成
+2. Leader 编辑相关 plug 文件，按主题分区写本项目的角色规则
+3. commit + 全团队 update
+4. 此后所有 `/ilink-pm`、`/ilink-design`、`/ilink-coder`、`/ilink-qa`、`/ilink-domain`、`/ilink-lightme` 执行时，自动加载对应 plug，项目规则即生效——不需要每次手动提醒 AI
+
+### 12.8 跨平台跟进现状（v1.8.0 首发）
+
+| 平台 | Plug 体系支持状态 |
+|------|------------------|
+| Codex CLI | ✅ v1.8.0 首发（bootstrap 已包含 plug 初始化） |
+| Claude CLI | ⏳ 待跟进 |
+| Qoder CLI | ⏳ 待跟进 |
+| Gemini CLI | ⏳ 待跟进 |
+
+待跟进平台的用户：plug 协议本身已经生效（AI 加载 soul 时按 Root Spec §4.7.3 自动加载 plug），但 bootstrap 不会自动创建空模板，需手动建立 `iLink/souls/plugs/` 目录与各角色文件——可直接从 iLink 框架仓库 `src/iLink/souls/plugs/` copy 使用。
+
+---
+
+## 13. `/ilink-lightme` — 设计拷问员（可选，v1.8.0+）
+
+### 13.1 解决的问题
+
+在同一个 CLI 会话里，AI 刚产出 design，紧接着让它审视自己的 design——它会**护短**：因为这是它自己刚生成的，存在"承诺一致性"倾向，倾向证明自己对，而非真正挑刺。同一模型既做设计又给自己打分，是一个回音室。
+
+`/ilink-lightme` 让你在 design 完成后、approve 之前，由**独立视角**拷问这份设计，照亮你可能没看到的盲区。
+
+### 13.2 何时用 / 何时跳过
+
+| 场景 | 建议 |
+|---|---|
+| 跨模块接口变更 | ✅ 触发 |
+| 资金 / 清算 / 合规核心逻辑 | ✅ 触发 |
+| 复杂的并发 / 事务 / 状态机 | ✅ 触发 |
+| 纯 UI 改动、文案修改 | ❌ 跳过 |
+| 独立小功能、修复明显 bug | ❌ 跳过 |
+
+### 13.3 操作流程（Codex CLI 用户，v1.8.0 首发）
+
+```bash
+# 1. 终端预检（可选）：算 SHA1、报告 domain 覆盖情况
+bash .codex/commands/ilink-lightme kcia-1520
+```
+
+**重要**：然后**打开一个全新的 Codex 会话**（不是接着 design 那个），输入：
+
+```
+ilink-lightme kcia-1520
+```
+
+AI 会以对抗（协作）人格拷问设计，每次问一个问题、给一个推荐答案。你逐条回答，AI 追问到底再换方向。
+
+### 13.4 拷问结束后，AI 生成什么
+
+`iLink-doc/kcia-1520/kcia-1520-lightme.md`，记录：
+- 拷问过程（逐轮）
+- 被照亮的盲区与处置（三态）：
+  - **RESOLVED**：拷问中澄清，设计已能覆盖或已就地更新文档
+  - **TO-FIX**：暴露设计缺陷，需回 design 修改后再 approve
+  - **ACCEPTED-RISK**：你主动判断可接受、本次跳过——**必须写明你接受的理由**（审计关键留痕）
+- 本次已更新的文档（经你 Human-Gate 确认）
+- 建议补充 domain 清单
+- 给你的提示
+
+**lightme 不下"通过 / 不通过"结论**——那是你在 approve 时的事。lightme 只产盲区清单 + 处置记录。
+
+### 13.5 lightme 拷问中写文档的边界
+
+lightme 可能就地更新两类项目文档（每次写前都会问你确认）：
+- ✅ 可写 `project-context.md`（自动跳过 Issue System 隔离块）
+- ✅ 可写**已存在的** `<模块>-domain-knowledge.md`
+- ❌ **绝不创建**不存在的 domain-knowledge.md（那是 `/ilink-domain` 的专属产物）
+
+模块没有 domain 文件？lightme 会写进报告"建议补充 domain"区块，建议你后续手动跑 `/ilink-domain <模块>`。
+
+### 13.6 拷问完了下一步走哪条命令？
+
+- 盲区全是 RESOLVED → 直接 `/ilink-approve`
+- 有 TO-FIX → 先回 design 修：用 `/ilink-refine`（轻改）或重跑 `/ilink-design`（大改），再 `/ilink-approve`
+- 全是 ACCEPTED-RISK → 你已留痕，直接 `/ilink-approve` 即代表接受这些已知风险
+
+### 13.7 诚实的能力边界
+
+lightme 与生成 design 的是**同一个底层模型**。新会话能切断"记忆层面"的护短，但**切不断模型自身的盲区**——底层模型写 design 时没想到的结构性盲点，新会话大概率仍想不到。
+
+lightme 提供约 **70% 的隔离效果**，剩余盲区靠你的领域经验补足。
+
+### 13.8 行业特化（如金融术语、合规要求）
+
+不是写进框架级 prompt 的——通过 `iLink/souls/plugs/lightme.project.plug.md` 项目自维护（按 §12 加法语义）。Leader 编辑后 commit，AI 自动加载本项目的拷问扩展。
+
+### 13.9 跨平台跟进现状（v1.8.0 首发）
+
+| 平台 | lightme 支持状态 |
+|------|------------------|
+| Codex CLI | ✅ v1.8.0 首发 |
+| Claude CLI | ⏳ 待 Codex 验证后跟进 |
+| Qoder CLI | ⏳ 待跟进 |
+| Gemini CLI | ⏳ 待跟进 |
+
+非 Codex 平台用户：可通过 Codex 跑 lightme，或在 approve 前由 Leader 手动审视设计。
+
+---
+
 ## 附录 A：命令速查表
 
 ### 核心流水线命令（交付模式）

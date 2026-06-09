@@ -66,8 +66,51 @@ if [[ $missing_commands -eq 1 ]]; then
   log_warn "Some command files are missing. Bootstrap will continue but some features may not work."
 fi
 
-# Step 3: Check project-context.md
-log_info "Step 3: Checking project-context.md..."
+# Step 3: Initialize Soul plug system (v1.8.0+)
+# See Root Spec §4.7 and Implementation Guide §1.5
+log_info "Step 3: Initializing Soul plug system..."
+
+plugs_dir="iLink/souls/plugs"
+mkdir -p "$plugs_dir"
+
+write_empty_plug() {
+  local role="$1"
+  local label="$2"
+  local target="$plugs_dir/${role}.project.plug.md"
+
+  if [[ -f "$target" ]]; then
+    echo "  ✅ $target (already exists, not overwritten)"
+    return 0
+  fi
+
+  cat > "$target" <<EOF
+# ${role}.project.plug.md
+# 项目级补充规则（对 iLink/souls/${role}.soul.md 的加法补充）
+# 维护方式：Leader 编辑后 commit → 全团队 update 生效
+# 框架升级时本文件不动
+# 详见 Root Spec §4.7
+
+---
+
+*本文件当前为空模板。在下方按主题分区写入本项目对 ${label} 角色的补充规则。*
+*补充规则可以是 ADD / REFINE / TIGHTEN 三类——增加新约束、细化通用规则到本项目口径、*
+*加严已有约束。详见 Root Spec §4.7.2。*
+EOF
+  echo "  🆕 $target (created from template)"
+}
+
+write_empty_plug "pm" "PM"
+write_empty_plug "design" "Designer"
+write_empty_plug "coder" "Coder"
+write_empty_plug "qa" "QA"
+write_empty_plug "domain" "Domain Engineer"
+write_empty_plug "lightme" "Lightme"
+
+# universal.project.plug.md SHALL NOT be created by bootstrap.
+# Projects create it ad hoc when cross-role rules are needed (see Root Spec §4.7.5).
+
+# Step 4: Check project-context.md
+log_info "Step 4: Checking project-context.md..."
 if [[ -f "project-context.md" ]]; then
   echo "  ✅ project-context.md exists"
   echo "     (Bootstrap will skip generation if content is complete)"
@@ -76,8 +119,8 @@ else
   echo "     (Bootstrap will analyze project and generate it)"
 fi
 
-# Step 4: Check entry files
-log_info "Step 4: Checking entry files..."
+# Step 5: Check entry files
+log_info "Step 5: Checking entry files..."
 
 check_entry_file() {
   local file=$1
@@ -96,8 +139,8 @@ check_entry_file() {
 check_entry_file "CLAUDE.md" "CLAUDE.md"
 check_entry_file "AGENTS.md" "AGENTS.md"
 
-# Step 5: Check iLink-doc directory
-log_info "Step 5: Checking iLink-doc directory..."
+# Step 6: Check iLink-doc directory
+log_info "Step 6: Checking iLink-doc directory..."
 if [[ -d "iLink-doc" ]]; then
   echo "  ✅ iLink-doc/ exists"
 else

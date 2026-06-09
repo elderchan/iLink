@@ -1,7 +1,7 @@
 # iLink Implementation Guide
 
 > **文档编号**: ILINK-IMPL-GUIDE
-> **版本**: v1.7.0
+> **版本**: v1.8.0
 > **作者**: 周本高
 > **日期**: 2026-05-27
 > **文档类型**: 实施手册（Implementation Guide）
@@ -355,6 +355,95 @@ Soul 文件 MUST 遵守 Root Spec，MAY 增加角色特有细节。
 - Soul 文件和 Master Doc 格式 MUST 在所有平台上完全一致
 - 新增 Host CLI 平台时，只需在对应目录创建命令文件，SHALL NOT 修改 Soul 文件
 - `_common.sh` 函数库 SHOULD 在 .codex 和 .qoder 之间共享
+
+---
+
+### 1.5 Soul 项目级补充（Plug）体系脚手架
+
+> 自 iLink v1.8.0 引入。协议层定义见 Root Spec §4.7；本节描述实现侧的脚手架与机械约定。
+
+#### 1.5.1 目录与文件命名
+
+iLink 框架仓库与下游项目的 `souls/` 目录布局：
+
+```
+iLink/souls/
+├── universal.soul.md
+├── pm.soul.md
+├── design.soul.md
+├── coder.soul.md
+├── qa.soul.md
+├── domain.soul.md
+└── plugs/
+    ├── pm.project.plug.md         ← 框架仓库 ship 时即含空模板
+    ├── design.project.plug.md
+    ├── coder.project.plug.md
+    ├── qa.project.plug.md
+    ├── domain.project.plug.md
+    ├── lightme.project.plug.md    ← v1.8.0 起新增
+    └── universal.project.plug.md  ← 框架仓库不 ship；项目按需自建
+```
+
+框架仓库 ship 时，`plugs/` 下含 **6 个空模板**（pm / design / coder / qa / domain / lightme）。`universal.project.plug.md` **不**默认 ship，由项目按需创建——这与 Root Spec §4.7.5 对齐。
+
+#### 1.5.2 空模板的标准内容
+
+各 `<role>.project.plug.md` 空模板内容如下，**所有平台的 bootstrap 必须使用一致内容**：
+
+```markdown
+# <role>.project.plug.md
+# 项目级补充规则（对 iLink/souls/<role>.soul.md 的加法补充）
+# 维护方式：Leader 编辑后 commit → 全团队 update 生效
+# 框架升级时本文件不动
+# 详见 Root Spec §4.7
+
+---
+
+*本文件当前为空模板。在下方按主题分区写入本项目对 <role> 角色的补充规则。*
+*补充规则可以是 ADD / REFINE / TIGHTEN 三类——增加新约束、细化通用规则到本项目口径、*
+*加严已有约束。详见 Root Spec §4.7.2。*
+```
+
+将 `<role>` 替换为具体角色名（pm / design / coder / qa / domain / lightme）。
+
+#### 1.5.3 Soul 主文件的 Plug 引用 preamble
+
+七个 soul 主文件（universal / pm / design / coder / qa / domain / lightme）MUST 在文件**头部**（在原有 `# Title` 与 `> description` 之后、第一个 `---` 之前）加入统一格式的 plug 引用 preamble：
+
+```markdown
+<!-- 以下 preamble 自 iLink v1.8.0 起加入，定义本 soul 与项目级 plug 的加载关系 -->
+
+> **加载补充规则（按 Root Spec §4.7.3）**
+>
+> AI MUST 在执行本角色任务前，additionally 加载 `iLink/souls/plugs/<role>.project.plug.md`（若文件存在且非空，含至少一条规则）。两份内容均视为约束（加法语义，框架不仲裁冲突）。文件不存在或为空模板时按本 soul 单独执行，不报错。详见 Root Spec §4.7。
+```
+
+preamble 内容跨七个文件**完全一致**，仅 `<role>` 替换为各角色名。preamble 的作用：
+- 让 AI 角色读 soul 时立即看到 plug 文件路径，触发加载
+- 对人类读者明示"本 soul 之上还有项目级补充层"
+
+#### 1.5.4 Bootstrap 对 Plug 的处理
+
+`/ilink-bootstrap`（各平台实现）在标准生成流程中，MUST 包含以下步骤：
+
+1. 检查 `iLink/souls/plugs/` 目录是否存在
+2. 若不存在 → 创建该目录
+3. 对 pm / design / coder / qa / domain / lightme 六个角色，逐一检查对应的 `<role>.project.plug.md` 是否存在：
+   - 若**不存在** → 写入 §1.5.2 的空模板
+   - 若**已存在** → **SHALL NOT 覆盖**（可能含项目已积累的规则）
+4. `universal.project.plug.md` SHALL NOT 由 bootstrap 主动创建
+5. 在最终报告中提示 Leader："已确保 `iLink/souls/plugs/` 下含 6 个角色 plug 模板；Leader 可按需填入项目级规则，`universal.project.plug.md` 按需自行创建。"
+
+#### 1.5.5 跨平台跟进现状（v1.8.0 首发）
+
+| 平台 | Plug 体系支持状态 |
+|------|------------------|
+| Codex CLI | ✅ v1.8.0 首发（bootstrap 与 codex-commands.md 已包含 plug 初始化） |
+| Claude CLI | ⏳ 待跟进（plug 体系协议已生效，bootstrap 模板待更新） |
+| Qoder CLI | ⏳ 待跟进 |
+| Gemini CLI | ⏳ 待跟进 |
+
+待跟进平台的用户：plug 协议本身已经生效（AI 加载 soul 时按 Root Spec §4.7.3 自动加载 plug），但 bootstrap 不会创建空模板，需手动建立 `iLink/souls/plugs/` 目录与各角色文件。框架仓库 `src/iLink/souls/plugs/` 内的 6 个空模板可直接 copy 使用。
 
 ---
 

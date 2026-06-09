@@ -68,7 +68,7 @@ cp iLink-doc/$ARGUMENTS/$ARGUMENTS-design.master.md \
 ```markdown
 ---
 # ILINK-PROTOCOL-METADATA
-Protocol_Version: v1.7.0
+Protocol_Version: v1.8.0
 Role: DESIGNER
 AI_Vendor: Qoder
 AI_Model: <你的实际模型 ID>

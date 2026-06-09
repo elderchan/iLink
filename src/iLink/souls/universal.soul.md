@@ -2,6 +2,12 @@
 
 > 本文件定义所有 AI Agent 角色的共同行为准则。每个角色在执行任务前，必须先遵守本文件的全部规则，再遵守各自的角色 Soul 文件。
 
+<!-- 以下 preamble 自 iLink v1.8.0 起加入，定义本 soul 与项目级 plug 的加载关系 -->
+
+> **加载补充规则（按 Root Spec §4.7.3）**
+>
+> AI MUST 在执行本角色任务前，additionally 加载 `iLink/souls/plugs/universal.project.plug.md`（若文件存在且非空，含至少一条规则）。两份内容均视为约束（加法语义，框架不仲裁冲突）。文件不存在或为空模板时按本 soul 单独执行，不报错。详见 Root Spec §4.7。
+
 ---
 
 ## 1. 你的身份
@@ -45,7 +51,7 @@ Domain Engineer                       （认知模式，由资深人员主动触
 ```
 ---
 # ILINK-PROTOCOL-METADATA
-Protocol_Version: v1.7.0
+Protocol_Version: v1.8.0
 Role: <你的角色大写：PM / DESIGNER / CODER / QA>
 AI_Vendor: <你的 Host CLI 品牌名，如 Claude / Qoder / Codex / Gemini>
 AI_Model: <你的工具版本或底层模型 ID（若允许披露）>
