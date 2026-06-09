@@ -394,8 +394,17 @@ Status: <COMPLETED | FAIL_BACK_TO_CODER | STAGING>
 
 ### 前置检查
 - 读取 `iLink-doc/<story>/<story>-design.master.md`
-- 若不存在，提示用户先执行 `ilink-design <story>` 并退出
-- 检查 design.master.md 的 Status（通常应为 STAGING；其它状态给 warning 但继续）
+- 若不存在，提示用户先执行 `/ilink-design <story>` 并退出
+- 检查 design.master.md 的 Status：
+  - `STAGING`（典型）→ 继续
+  - `PENDING_CODER` → **拒绝执行**：design 已经过 approve，lightme 无意义。提示用户：要么重跑 `/ilink-design` 后再 lightme，要么手动复盘留痕
+  - 其它状态（如 PM 阶段误用）→ warning 但继续
+
+### 与 /ilink-refine 的顺序建议
+
+若 design 含 `[待确认]` 项（典型的 Designer 自标阻塞），**建议先 `/ilink-refine` 把 [待确认] 项澄清成 [已确认]，再 `/ilink-lightme` 拷问**。理由：refine 解决"已知不确定性"，lightme 挖"未发现盲区"——先把已知问题压实，避免 lightme 在已经标了 [待确认] 的位置重复挖。
+
+顺序不强制；Leader 也可先跑 lightme 让两边问题一并暴露，再决定如何修订。
 
 ### 执行（拷问主流程）
 
@@ -628,6 +637,7 @@ subagent 失败或返回为空时，**SHALL NOT** 阻塞 Status 推进。在 fee
 - `iLink/souls/qa.soul.md`
 - `iLink/souls/domain.soul.md`（v1.3 新增，缺失时警告但不阻塞）
 - `iLink/souls/coach.soul.md`（v1.6.0 新增，启用 ilink-approve Coach 子流程时 MUST）
+- `iLink/souls/lightme.soul.md`（v1.8.0 新增，启用 /ilink-lightme 时 MUST）
 
 如果以上文件全部缺失，停止执行，提示用户先复制 iLink 框架。
 

@@ -6,7 +6,7 @@
 
 > **加载补充规则（按 Root Spec §4.7.3）**
 >
-> AI MUST 在执行本角色任务前，additionally 加载 `iLink/souls/plugs/domain.project.plug.md`（若文件存在且非空，含至少一条规则）。两份内容均视为约束（加法语义，框架不仲裁冲突）。文件不存在或为空模板时按本 soul 单独执行，不报错。详见 Root Spec §4.7。
+> AI MUST 在执行本角色任务前，额外加载 `iLink/souls/plugs/domain.project.plug.md`（若文件存在且非空，含至少一条规则）。两份内容均视为约束（加法语义，框架不仲裁冲突）。文件不存在或为空模板时按本 soul 单独执行，不报错。详见 Root Spec §4.7。
 
 ---
 

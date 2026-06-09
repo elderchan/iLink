@@ -140,6 +140,7 @@ iLink 包含两条平行的工作线，共用同一套 Host CLI 基础设施：
 │           /ilink-status  /ilink-bootstrap                     │
 │   认知线：/ilink-domain                                        │
 │   外部集成：/ilink-pull（Issue System 拉取）                    │
+│   可选拷问：/ilink-lightme（design → approve 之间，advisory）   │
 ├──────────────────────────────────────────────────────────────┤
 │              Bash 辅助脚本层（轻量）                            │
 │   ilink-init / ilink-status / ilink-approve / ilink-pull     │
@@ -1041,6 +1042,10 @@ lightme 运行过程中可能写三类性质完全不同的 md 文件：
 
 **绝对禁止创建不存在的 domain-knowledge.md**——它是 `/ilink-domain` 的专属产物，有严格的生成流程（资深工程师引导、10 章标准结构、资深审核确认）。lightme 是审查者，不是知识沉淀者。
 
+**`domain-knowledge.md §10 待确认` 区块 SHALL NOT 被 lightme 修改**——该区块是 `/ilink-domain` 与业务专家的专属工作区，承载尚未由资深人员审核确认的 [待确认] 项。lightme 可触碰其它 9 章，但 §10 始终不动；若有澄清要补入 §10，写进 lightme 报告的"建议补充 domain"区块，转交 `/ilink-domain` 走正规流程。
+
+**各平台 Bootstrap 实现 SHALL NOT 覆盖 lightme 已写入 `project-context.md` 的内容**——下游用户重跑 Bootstrap 时（如框架版本升级），各平台的 `/ilink-bootstrap` 实现 MUST 检测 project-context.md 是否已存在且含主体内容（包括 lightme 沉淀的术语/决策），存在则跳过重生成。当前 v1.8.0 Codex 平台已遵守此约束（步骤 4 跳过逻辑）；Claude/Qoder/Gemini 平台跟进时 MUST 同步遵守。
+
 形成的闭环：
 
 ```
@@ -1152,7 +1157,7 @@ Timestamp 和 SHA1 MUST 通过 shell 命令实际获取（按 §5.4 规则），
 ---
 # ILINK-PROTOCOL-METADATA
 Protocol_Version: v1.8.0
-Role: <PM / DESIGNER / CODER / QA>
+Role: <PM / DESIGNER / CODER / QA / LIGHTME>
 AI_Vendor: <执行本角色的 Host CLI 品牌名，如 Claude / Qoder / Codex / Gemini>
 AI_Model: <工具版本或底层模型；若 Host CLI 允许披露则填底层模型（如 claude-sonnet-4-6），否则填工具版本号>
 Current_Timestamp: <执行 `TZ=Asia/Shanghai date +%Y-%m-%dT%H:%M:%S+08:00` 获取>
@@ -1202,6 +1207,9 @@ Status: <状态值>
 | Designer | `<story>-pm.master.md` | `shasum iLink-doc/<story>/<story>-pm.master.md` |
 | Coder | `<story>-design.master.md` | `shasum iLink-doc/<story>/<story>-design.master.md` |
 | QA | `<story>-code.master.md` | `shasum iLink-doc/<story>/<story>-code.master.md` |
+| LIGHTME | `<story>-design.master.md` | `shasum iLink-doc/<story>/<story>-design.master.md` |
+
+> **LIGHTME 注**：lightme.md 不参与 Status 状态机（固定 `Status: ADVISORY`），但 Upstream_SHA1 仍 MUST 计算并锚定 design 当前版本，用于审计验证报告对应哪一版 design。详见 §4.8.11。
 
 Agent MUST NOT 输出 `—` 作为这两个字段的值。不存在"引擎注入"或"事后校正"路径——所有 Metadata 字段均由 Agent 在输出时自填完毕。
 
@@ -1414,7 +1422,16 @@ iLink 的每个角色 MUST 由人类手动触发：
 │       ├── coder.soul.md
 │       ├── qa.soul.md
 │       ├── domain.soul.md              ← Domain Engineer 角色规范（v1.3新增）
-│       └── coach.soul.md               ← Coach 角色规范（v1.6.0新增，协作认知）
+│       ├── coach.soul.md               ← Coach 角色规范（v1.6.0新增，协作认知）
+│       ├── lightme.soul.md             ← Lightme 角色规范（v1.8.0新增，可选拷问）
+│       └── plugs/                      ← 项目级 plug 补充层（v1.8.0新增，详见 §4.7）
+│           ├── pm.project.plug.md
+│           ├── design.project.plug.md
+│           ├── coder.project.plug.md
+│           ├── qa.project.plug.md
+│           ├── domain.project.plug.md
+│           ├── lightme.project.plug.md
+│           └── universal.project.plug.md  ← 项目按需自建
 ├── iLink-doc/                          ← 知识与交付文档（版本控制）
 │   ├── domain/                         ← 领域认知资产库（v1.3新增，认知线产出）
 │   │   └── <module>-domain-knowledge.md
@@ -1426,6 +1443,7 @@ iLink 的每个角色 MUST 由人类手动触发：
 │       ├── <id>-review.master.md
 │       ├── <id>-feedback.md            ← 协作反馈文件（v1.6.0新增，旁路输出，不进契约链）
 │       ├── <id>-usage.md               ← Usage 追踪文件（v1.6.0新增，仅 init/qa 写入，不进契约链）
+│       ├── <id>-lightme.md             ← Lightme 拷问审计报告（v1.8.0新增，advisory，不进契约链）
 │       ├── .snapshots/                 ← design 快照目录（v1.6.0新增，不提交）
 │       │   └── design.master.<timestamp>.md
 │       └── .retry_count                ← 信号文件（不提交）
@@ -1605,6 +1623,8 @@ iLink 的每个角色 MUST 由人类手动触发：
 - `iLink-doc/<story>/<story>-*.master.md`
 - `iLink-doc/<story>/<story>-feedback.md`（v1.6.0，Coach 协作复盘记录）
 - `iLink-doc/<story>/<story>-usage.md`（v1.6.0，Per-Story 资源消耗追踪）
+- `iLink-doc/<story>/<story>-lightme.md`（v1.8.0，Lightme 拷问审计报告，advisory；MUST 提交以保审计追溯）
+- `iLink/souls/plugs/*.project.plug.md`（v1.8.0，项目级 plug 补充规则；MUST 提交以让全团队共享项目定制）
 - `.claude/commands/*.md`、`.claude/commands/*.sh`（`/ilink-pull` 等纯 bash 命令的脚本本体）
 - `.codex/commands/*`、`.qoder/commands/*`、`.gemini/commands/*`
 

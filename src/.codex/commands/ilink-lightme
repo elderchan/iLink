@@ -28,7 +28,13 @@ fi
 
 # Verify design.master.md is STAGING (typical case)
 status=$(check_status "$design_doc")
-if [[ "$status" != "STAGING" ]]; then
+if [[ "$status" == "PENDING_CODER" ]]; then
+  log_error "design.master.md status is PENDING_CODER — 该 design 已经过 /ilink-approve，再跑 lightme 无意义。"
+  echo "  典型修复路径："
+  echo "  - 如发现设计缺陷想推翻已 approve 的决策：重跑 /ilink-design 生成新 design（Status 回 STAGING），再 /ilink-lightme"
+  echo "  - 如仅想审计已 approve 设计的盲区记录：不要用 lightme，建议 Leader 手动复盘并在 Story 笔记或 commit 信息中留痕"
+  exit 1
+elif [[ "$status" != "STAGING" ]]; then
   log_warn "design.master.md status is $status (expected STAGING)"
   echo "  Lightme is most useful when design is STAGING and pending approve."
   echo "  Proceeding anyway."

@@ -6,7 +6,7 @@
 
 > **加载补充规则（按 Root Spec §4.7.3）**
 >
-> AI MUST 在执行本角色任务前，additionally 加载 `iLink/souls/plugs/lightme.project.plug.md`（若文件存在且非空，含至少一条规则）。两份内容均视为约束（加法语义，框架不仲裁冲突）。文件不存在或为空模板时按本 soul 单独执行，不报错。详见 Root Spec §4.7。
+> AI MUST 在执行本角色任务前，额外加载 `iLink/souls/plugs/lightme.project.plug.md`（若文件存在且非空，含至少一条规则）。两份内容均视为约束（加法语义，框架不仲裁冲突）。文件不存在或为空模板时按本 soul 单独执行，不报错。详见 Root Spec §4.7。
 
 ---
 
@@ -128,6 +128,19 @@
 5. 建议补充 domain（转交 /ilink-domain）
 6. 给 Leader 的提示
 7. Metadata 印章
+
+#### 7.2.1 三态定义（审计核心，MUST 严格落实）
+
+每个被照亮的盲区 MUST 标注以下三态之一：
+
+- **RESOLVED**：拷问中已澄清，设计本身已能覆盖该盲区，或拷问中已就地更新了 project-context.md / 已存在 domain-knowledge.md 完成沉淀。SHALL NOT 用此态描述"未来会修"的情况。
+- **TO-FIX**：拷问暴露的实质设计缺陷。Leader 应**先回 /ilink-design 或 /ilink-refine 修正 design**，再 /ilink-approve。此态在 lightme.md 中是给 Leader 的"待办项"。
+- **ACCEPTED-RISK**：Leader 主动判断该盲区可接受、本次跳过。**MUST 在该盲区条目下写明 Leader 接受理由**（如"本期 SLA 有保障，下期解决"、"该路径概率极低，监控覆盖"等）——审计关键留痕。无理由的 ACCEPTED-RISK 等同于走过场，SHALL NOT 输出。
+
+三态的形态对应不同的 approve 语义：
+- 全 RESOLVED → Leader 可直接 /ilink-approve
+- 有 TO-FIX → Leader **不应**直接 /ilink-approve；先修 design 再 approve
+- 全 ACCEPTED-RISK → Leader /ilink-approve 即代表正式接受这些已知风险，理由落在 lightme.md 中可追溯
 
 ### 7.3 Metadata 印章
 

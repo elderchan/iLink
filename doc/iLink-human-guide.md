@@ -2,7 +2,7 @@
 
 > **读者**：使用 iLink 进行日常开发的工程师
 > **前提**：项目已完成 Bootstrap（`project-context.md` 和入口文件已就位）
-> **版本**：v1.6.0
+> **版本**：v1.8.0
 
 ---
 
@@ -1146,6 +1146,8 @@ lightme 可能就地更新两类项目文档（每次写前都会问你确认）
 - 盲区全是 RESOLVED → 直接 `/ilink-approve`
 - 有 TO-FIX → 先回 design 修：用 `/ilink-refine`（轻改）或重跑 `/ilink-design`（大改），再 `/ilink-approve`
 - 全是 ACCEPTED-RISK → 你已留痕，直接 `/ilink-approve` 即代表接受这些已知风险
+
+> **记得 `git commit`**：`<story>-lightme.md` MUST 纳入版本控制（与 `feedback.md`、`pm.master.md` 等其它 Story 文档一起），是审计追溯的关键留痕。Story 完成提交时：`git add iLink-doc/<story>/`。
 
 ### 13.7 诚实的能力边界
 

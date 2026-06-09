@@ -374,6 +374,8 @@ iLink/souls/
 ├── coder.soul.md
 ├── qa.soul.md
 ├── domain.soul.md
+├── coach.soul.md                 ← v1.6.0，Coach 协作复盘子流程
+├── lightme.soul.md               ← v1.8.0，可选拷问命令
 └── plugs/
     ├── pm.project.plug.md         ← 框架仓库 ship 时即含空模板
     ├── design.project.plug.md
@@ -415,7 +417,7 @@ iLink/souls/
 
 > **加载补充规则（按 Root Spec §4.7.3）**
 >
-> AI MUST 在执行本角色任务前，additionally 加载 `iLink/souls/plugs/<role>.project.plug.md`（若文件存在且非空，含至少一条规则）。两份内容均视为约束（加法语义，框架不仲裁冲突）。文件不存在或为空模板时按本 soul 单独执行，不报错。详见 Root Spec §4.7。
+> AI MUST 在执行本角色任务前，额外加载 `iLink/souls/plugs/<role>.project.plug.md`（若文件存在且非空，含至少一条规则）。两份内容均视为约束（加法语义，框架不仲裁冲突）。文件不存在或为空模板时按本 soul 单独执行，不报错。详见 Root Spec §4.7。
 ```
 
 preamble 内容跨七个文件**完全一致**，仅 `<role>` 替换为各角色名。preamble 的作用：
@@ -767,6 +769,7 @@ AGENTS.md 与 CLAUDE.md 遵守完全一致的"双向显式 AI 行为规则"—�
 | `iLink/souls/qa.soul.md` | MUST | QA 角色规范 |
 | `iLink/souls/domain.soul.md` | SHOULD | Domain Engineer 角色规范（认知模式） |
 | `iLink/souls/coach.soul.md` | SHOULD | Coach 角色规范（协作认知模式，v1.6.0 新增；启用 `/ilink-approve` Coach 子流程时 MUST） |
+| `iLink/souls/lightme.soul.md` | SHOULD | Lightme 角色规范（可选拷问命令，v1.8.0 新增；启用 `/ilink-lightme` 时 MUST） |
 | `project-context.md` | MUST | 项目知识库（Bootstrap 必须生成，是所有角色的前置依赖） |
 | 至少一个平台的 Command 文件集 | MUST | 如 `.claude/commands/ilink-{pm,design,coder,qa,refine,approve,status,init}.md` |
 | `iLink-doc/domain/` 目录 | SHOULD（目录本身——不是每个项目都启用认知模式） | 领域知识文档存放目录（一旦产出了文档，MUST 纳入版本控制） |
