@@ -109,6 +109,7 @@
 硬约束：
 - project-context.md：**SHALL NOT** 触碰 Root Spec §7.8 定义的 AI 隔离块
 - domain-knowledge.md：**仅就地更新已存在文件**；**SHALL NOT** 创建不存在的 domain 文件
+- **domain-knowledge.md §10 待确认 区块 SHALL NOT 被修改**——该区块是 `/ilink-domain` 与业务专家的专属工作区；若有澄清要补入 §10，写进 lightme 报告"建议补充 domain"区块，转交 `/ilink-domain`（详见 Root Spec §4.8.10）
 - 缺失的 domain：把澄清内容写进 lightme.md 报告"建议补充 domain"区块，转交 `/ilink-domain`
 
 每次写 project-context 或 domain 前，MUST 展示拟写入内容给 Leader 确认（Human-Gate）。

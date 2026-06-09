@@ -421,6 +421,7 @@ Status: <COMPLETED | FAIL_BACK_TO_CODER | STAGING>
 按 lightme.soul.md 第 6 节执行：
 - 写 `project-context.md` 前 MUST Human-Gate 确认，且 SHALL NOT 触碰 §7.8 隔离块
 - 写已存在的 `<模块>-domain-knowledge.md` 前 MUST Human-Gate 确认
+- **domain-knowledge.md §10 待确认区块 SHALL NOT 被 lightme 修改**；若有澄清要补入 §10，写进报告"建议补充 domain"区块转交 `/ilink-domain`（详见 Root Spec §4.8.10）
 - domain-knowledge.md 不存在时 SHALL NOT 创建，写进报告"建议补充 domain"区块
 
 ### 输出
