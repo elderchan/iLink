@@ -79,7 +79,7 @@ fi
 
 echo ""
 echo "=========================================="
-echo "ilink-approve <$story> 预检完成"
+echo "/ilink-approve <$story> 预检完成"
 echo "=========================================="
 echo ""
 echo "  目标文档 : $target_doc ($target_role STAGING)"
@@ -94,7 +94,7 @@ fi
 echo ""
 echo "现在请在 Codex 对话中输入以下命令以触发 Coach 子流程并完成推进："
 echo ""
-echo "  ilink-approve $story"
+echo "  /ilink-approve $story"
 echo ""
 echo "  AI 将："
 if [[ "$target_role" == "design" ]]; then

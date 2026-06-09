@@ -52,7 +52,7 @@ fi
 
 echo ""
 echo "=========================================="
-echo "ilink-lightme <$story> 预检完成"
+echo "/ilink-lightme <$story> 预检完成"
 echo "=========================================="
 echo ""
 echo "  目标 design   : $design_doc"

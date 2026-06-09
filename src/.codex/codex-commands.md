@@ -995,7 +995,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### 执行
 
-调用 bash 脚本完成实际拉取（脚本完成所有校验、HTTP 请求、JSON 解析、文件写入）：
+**AI 内部调用，使用者不要在 OS shell 执行此 bash 命令**——使用者只在 Codex 对话窗口输入 `/ilink-pull <story-id>`，AI 收到后用 Bash 工具自动调用以下脚本完成实际拉取（脚本完成所有校验、HTTP 请求、JSON 解析、文件写入）：
 
 ```bash
 bash .codex/commands/ilink-pull <story-id>
@@ -1042,7 +1042,7 @@ bash .codex/commands/ilink-pull <story-id>
     └─ STAGING → /ilink-refine（逐条解除阻塞）→ /ilink-approve → PENDING_DESIGNER
                                                                ↓
 /ilink-design → design.master.md (STAGING，Human-Gate)
-    ├─ /ilink-refine（有 [待确认] 项时可用）→ 解除后 ilink-approve → PENDING_CODER
+    ├─ /ilink-refine（有 [待确认] 项时可用）→ 解除后 /ilink-approve → PENDING_CODER
     └─ /ilink-approve（人类直接审核通过）→ PENDING_CODER
                                           ↓
 /ilink-coder → code.master.md + source files (PENDING_QA)
