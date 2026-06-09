@@ -23,7 +23,7 @@
 | `/ilink-domain <module>` | Domain Engineer（领域知识生成，认知模式） | `/ilink-domain login-410301` |
 | `/ilink-pull <story>` | 从 Issue System 拉取需求"描述"字段写入 requirement.md（纯工具，无 AI 介入） | `/ilink-pull FS-AMO-5359` |
 
-> 使用者**统一在 Codex 对话窗口输入 `/ilink-*`**。匹配规则不区分大小写，且为向后兼容历史对话，无斜杠形态 `ilink-pm` 也会被视为同一命令。
+> 使用者**统一在 Codex 对话窗口输入 `/ilink-*`**。匹配规则不区分大小写，且为向后兼容历史对话，无斜杠形态（如裸 `ilink-pm`，注意没有前导斜杠）也会被视为同一命令。
 
 ---
 
@@ -76,7 +76,7 @@ Status: PENDING_DESIGNER
 
 ### 完成后
 - Status=STAGING → 说明阻塞原因，建议用户审核
-- Status=PENDING_DESIGNER → 提示用户执行 `ilink-design <story>`
+- Status=PENDING_DESIGNER → 提示用户执行 `/ilink-design <story>`
 
 ---
 
@@ -87,7 +87,7 @@ Status: PENDING_DESIGNER
 
 ### 前置检查
 - 读取 `iLink-doc/<story>/<story>-pm.master.md`
-- 如果不存在，提示用户先执行 `ilink-pm <story>`
+- 如果不存在，提示用户先执行 `/ilink-pm <story>`
 - 检查 pm.master.md 的 Metadata Status：
   - STAGING → 提示用户 PM 文档尚未审核通过
   - PENDING_DESIGNER → 继续执行
@@ -132,13 +132,13 @@ cp iLink-doc/<story>/<story>-design.master.md \
    iLink-doc/<story>/.snapshots/design.master.$(TZ=Asia/Shanghai date +%Y%m%d-%H%M%S).md
 ```
 
-快照供后续 `ilink-approve` 触发的 Coach 子流程检测人类对 design.master.md 的直接编辑。`.snapshots/` 目录 MUST 加入 `.gitignore`，SHALL NOT 提交到 git（详见 Root Spec §4.7.9）。
+快照供后续 `/ilink-approve` 触发的 Coach 子流程检测人类对 design.master.md 的直接编辑。`.snapshots/` 目录 MUST 加入 `.gitignore`，SHALL NOT 提交到 git（详见 Root Spec §4.7.9）。
 
 ### 完成后（Human-Gate）
 - Designer 设计默认需要人类审核（Status = STAGING）
 - 提示用户审阅 design.master.md，重点关注 [TASK_ALLOCATION] 和 [DESIGN_DECISIONS]
-- 审核通过后在对话中执行 `ilink-approve <story>` 推进状态（v1.6.0 起为对话内命令，含 Coach 子流程）
-- 然后执行 `ilink-coder <story>` 继续流水线
+- 审核通过后在对话中执行 `/ilink-approve <story>` 推进状态（v1.6.0 起为对话内命令，含 Coach 子流程）
+- 然后执行 `/ilink-coder <story>` 继续流水线
 
 ---
 
@@ -149,7 +149,7 @@ cp iLink-doc/<story>/<story>-design.master.md \
 
 ### 前置检查
 - 读取 `iLink-doc/<story>/<story>-design.master.md`
-- 如果不存在，提示用户先执行 `ilink-design <story>`
+- 如果不存在，提示用户先执行 `/ilink-design <story>`
 
 ### 读取现有源码
 - 从 design.master.md 的 [TASK_ALLOCATION] 中提取"修改文件"列表，逐一读取现有源码
@@ -197,7 +197,7 @@ Status: PENDING_QA
 
 ### 完成后
 - 提示用户检查代码文件
-- 执行 `ilink-qa <story>` 进入 QA 审查
+- 执行 `/ilink-qa <story>` 进入 QA 审查
 
 ---
 
@@ -205,7 +205,7 @@ Status: PENDING_QA
 
 ### 参数解析
 
-用户输入形如 `ilink-qa <story-id> <usage-value>`。
+用户输入形如 `/ilink-qa <story-id> <usage-value>`。
 
 - `<story-id>`：本次要 QA 审查的 Story ID
 - `<usage-value>`：执行本命令前，用户在 Codex 中执行 `/status` 查看到的 "Context window" 的 used 值（**绝对 token 数，非百分比**）
@@ -306,8 +306,8 @@ Status: <COMPLETED | FAIL_BACK_TO_CODER | STAGING>
 
 ### 完成后
 - COMPLETED → Story 完成，建议 git commit
-- FAIL_BACK_TO_CODER → 提示用户执行 `ilink-coder <story> <usage-value>` 回流修复（注意：下一次 qa 仍需带 usage-value）
-- STAGING → 展示 [UPSTREAM_BLOCKERS]，建议用户执行 `ilink-refine <story>` 讨论上游根因
+- FAIL_BACK_TO_CODER → 提示用户执行 `/ilink-coder <story> <usage-value>` 回流修复（注意：下一次 qa 仍需带 usage-value）
+- STAGING → 展示 [UPSTREAM_BLOCKERS]，建议用户执行 `/ilink-refine <story>` 讨论上游根因
 
 ---
 
@@ -368,7 +368,7 @@ Status: <COMPLETED | FAIL_BACK_TO_CODER | STAGING>
 - 若所有 H 级阻塞项已消解 → 更新文档中的 `[待确认]` 标记为 `[已确认]`，**不修改 Status**
 - 若仍有未解决的 H 级项 → 维持现状
 
-> **注意**：`ilink-refine` 只修订文档内容，状态推进由 `ilink-approve` 统一负责。
+> **注意**：`/ilink-refine` 只修订文档内容，状态推进由 `/ilink-approve` 统一负责。
 
 修订完成后提示：
 ```
@@ -446,7 +446,7 @@ SHA1 与时间戳 MUST 通过 shell 命令实际获取。预检脚本（`.codex/
 
 ### 完成后
 - 提示用户：lightme.md 已生成，建议在 approve 前 review
-- TO-FIX 盲区 → 建议先回 `ilink-design`（或 `ilink-refine`）修正
+- TO-FIX 盲区 → 建议先回 `/ilink-design`（或 `/ilink-refine`）修正
 - ACCEPTED-RISK 盲区 → 已留痕，approve 即代表接受
 - 不下"通过 / 不通过"结论
 
@@ -490,9 +490,9 @@ SHA1 与时间戳 MUST 通过 shell 命令实际获取。预检脚本（`.codex/
 #### 2.1 摘录对话 bracket
 
 在**当前 Codex 对话**中识别：
-- 外层窗口起点：本 Story 的 `ilink-pm <story>` 命令完成之后的第一个人类 turn
-- 外层窗口终点：本次 `ilink-approve <story>` 调用之前的最后一个人类 turn
-- 内部分界：外层内的 `ilink-design <story>` 命令 turn
+- 外层窗口起点：本 Story 的 `/ilink-pm <story>` 命令完成之后的第一个人类 turn
+- 外层窗口终点：本次 `/ilink-approve <story>` 调用之前的最后一个人类 turn
+- 内部分界：外层内的 `/ilink-design <story>` 命令 turn
 
 逐 turn 原文摘录，标注 `[turn-N] (user|assistant)` 与 `[--- /ilink-design 分界 ---]`。**SHALL NOT** 改写、概括或选择性剔除。
 
@@ -555,7 +555,7 @@ subagent 失败或返回为空时，**SHALL NOT** 阻塞 Status 推进。在 fee
    - design target → ✅ Coach 反馈已追加到 `iLink-doc/<story>/<story>-feedback.md`
    - PM/review target → ⏭️ Coach skipped（非 design 推进场景）
 2. Status 推进结果（或"未推进"及原因）
-3. 提示下一步：`ilink-coder <story>` / `ilink-design <story>` / 讨论上游根因
+3. 提示下一步：`/ilink-coder <story>` / `/ilink-design <story>` / 讨论上游根因
 
 > Coach 反馈不参与下游 AI（Coder/QA）输入读取——它只服务人类协作复盘。MUST 提交到 git。
 
@@ -644,9 +644,9 @@ subagent 失败或返回为空时，**SHALL NOT** 阻塞 Status 推进。在 fee
 ### 步骤 2：检查 Codex Command 文件
 
 确认 `.codex/commands/` 下存在以下文件：
-- `ilink-init`
-- `ilink-approve`（v1.6.0 起：bash 仅做预检，对话内的 `ilink-approve` 命令完成 Coach + Status 推进）
-- `ilink-status`
+- `/ilink-init`
+- `/ilink-approve`（v1.6.0 起：bash 仅做预检，对话内的 `/ilink-approve` 命令完成 Coach + Status 推进）
+- `/ilink-status`
 
 缺失时给出警告（不阻塞，因为可能使用其他平台）。
 
@@ -977,11 +977,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 > **定位**：纯 bash 工具命令，**无 AI 角色逻辑**。AI 收到该命令后**直接调用 bash 脚本**并原样转发输出，不参与任何业务/技术决策、不解析 JSON、不写文件。
 >
-> 受 Root Spec §7.8 / universal.soul §4.1 约束：AI **SHALL NOT** 读取 project-context.md 中"Issue System 集成"AI 隔离块的内容并作为业务上下文；**SHALL NOT** 修改隔离块（如需变更指引用户手动编辑或重跑 `ilink-bootstrap`）。
+> 受 Root Spec §7.8 / universal.soul §4.1 约束：AI **SHALL NOT** 读取 project-context.md 中"Issue System 集成"AI 隔离块的内容并作为业务上下文；**SHALL NOT** 修改隔离块（如需变更指引用户手动编辑或重跑 `/ilink-bootstrap`）。
 
 ### 参数
 
-用户输入形如 `ilink-pull <story-id>`，其中 `<story-id>` 大小写**原样透传**给 Issue System，不做任何转换。本命令**只接受 1 个参数**。
+用户输入形如 `/ilink-pull <story-id>`，其中 `<story-id>` 大小写**原样透传**给 Issue System，不做任何转换。本命令**只接受 1 个参数**。
 
 ### 必填校验
 
@@ -1011,7 +1011,7 @@ bash .codex/commands/ilink-pull <story-id>
 
 **仅在脚本退出码 0 时**，**追加** 1 行简短下一步提示（脚本本身不输出这行）：
 
-> 下一步：核对 requirement.md 的其他区块（功能范围 / 验收标准 / 约束备注 / 假设与风险），完成后执行 `ilink-pm <story-id>` 进入需求分析阶段。
+> 下一步：核对 requirement.md 的其他区块（功能范围 / 验收标准 / 约束备注 / 假设与风险），完成后执行 `/ilink-pm <story-id>` 进入需求分析阶段。
 
 **脚本退出码非 0 时**：SHALL NOT 再次调用脚本、SHALL NOT 添加任何补充说明。用户根据 stderr 自行处理（编辑 project-context.md、检查网络、修正 story-id 等）。
 
