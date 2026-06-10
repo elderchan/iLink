@@ -18,6 +18,7 @@
 - `iLink/souls/qa.soul.md`
 - `iLink/souls/domain.soul.md`（认知模式角色规范）
 - `iLink/souls/coach.soul.md`（协作认知角色规范，v1.6.0+）
+- `iLink/souls/lightme.soul.md`（设计拷问员角色规范，v1.8.0+，启用 `/ilink-lightme` 时 MUST）
 
 如果以上文件全部缺失，停止执行，提示用户先复制 iLink 框架。
 
@@ -35,24 +36,46 @@
 - `ilink-domain.md`（认知模式入口）
 - `ilink-pull.md`（Issue System 拉取入口 AI 薄壳）
 - `ilink-pull.sh`（Issue System 拉取 bash 脚本本体；由 ilink-pull.md 调用）
+- `ilink-lightme.md`（设计拷问员入口 AI 薄壳，v1.8.0+）
+- `ilink-lightme.sh`（设计拷问员 bash 预检脚本，v1.8.0+；由 ilink-lightme.md 调用）
 
-缺失时给出警告（不阻塞，因为可能使用其他平台）。`ilink-pull.sh` 缺失时除 warn 外还要提示用户：缺该脚本则 `/ilink-pull` 不可用，但其他流水线命令不受影响。
+缺失时给出警告（不阻塞，因为可能使用其他平台）。`ilink-pull.sh` 缺失时除 warn 外还要提示用户：缺该脚本则 `/ilink-pull` 不可用，但其他流水线命令不受影响。`ilink-lightme.*` 缺失时同样 warn 并提示：缺则 `/ilink-lightme` 不可用，但其他流水线命令不受影响。
 
 > **注意**：v1.6.0 起 `ilink-approve.md` 升级为含 Coach 子流程的 Slash Command（Coach 不需要单独的 `ilink-coach.md`）。
 
 ---
 
+## Soul plug 体系初始化
+
+### 步骤 3：Soul plug 体系初始化（v1.8.0+）
+
+> 本步骤自 iLink v1.8.0 引入。详见 Root Spec §4.7、Implementation Guide §1.5。
+
+通过 Bash 工具，确保 `iLink/souls/plugs/` 目录及 6 个角色空模板存在（**已存在则不覆盖**）：
+
+1. `mkdir -p iLink/souls/plugs`
+2. 对 pm / design / coder / qa / domain / lightme 六个角色，逐一检查 `iLink/souls/plugs/<role>.project.plug.md` 是否存在
+3. 若不存在 → 写入 Implementation Guide §1.5.2 定义的空模板内容（含顶部 4 行注释 + 分隔线 + italic 占位说明，`<role>` 替换为具体角色名）
+4. 若已存在 → SHALL NOT 覆盖（可能含项目已积累的规则）
+
+`universal.project.plug.md` SHALL NOT 由 bootstrap 主动创建（由项目按需自建，参见 Root Spec §4.7.5）。
+
+完成后在最终报告（步骤 10）中追加一行：
+"已确保 iLink/souls/plugs/ 下含 6 个角色 plug 模板；Leader 可按需填入项目级规则，universal.project.plug.md 按需自行创建。"
+
+---
+
 ## 生成 project-context.md
 
-### 步骤 3：检查现有 project-context.md
+### 步骤 4：检查现有 project-context.md
 
 读取 `project-context.md`，如果已存在且内容完整（包含技术约束、模块职责等章节）：
-1. 先执行**步骤 4.5（Issue System 集成块补齐）**，确保该块存在
-2. 然后跳到步骤 5
+1. 先执行**步骤 5.5（Issue System 集成块补齐）**，确保该块存在
+2. 然后跳到步骤 6
 
-如果不存在或内容为空/模板状态，执行步骤 4 → 步骤 4.5 → 步骤 5。
+如果不存在或内容为空/模板状态，执行步骤 5 → 步骤 5.5 → 步骤 6。
 
-### 步骤 4：分析项目并生成 project-context.md
+### 步骤 5：分析项目并生成 project-context.md
 
 **主动探索项目结构**，使用 Glob/Grep/Read 工具分析：
 
@@ -61,7 +84,7 @@
    - 查找 `README.md`，获取项目概述
    - 查找已有的 `CLAUDE.md` 和 `AGENTS.md`，**对每个文件分别判断内容类型**：
      - 如果是 iLink 引导（包含 `iLink 协作协议` 关键词）→ 视为已有 iLink 配置，仅作版本检查
-     - 如果是手写或其他 AI 工具（Claude `/init`、Qoder `/init`、Codex `/init` 等）生成的项目说明文件 → **必须将其中的项目信息完整迁移到 `project-context.md`**（注意：是迁移而非引用，因为原文件将在步骤 5/6 中被替换为 iLink 薄路由，原文件会被备份）
+     - 如果是手写或其他 AI 工具（Claude `/init`、Qoder `/init`、Codex `/init` 等）生成的项目说明文件 → **必须将其中的项目信息完整迁移到 `project-context.md`**（注意：是迁移而非引用，因为原文件将在步骤 6/7 中被替换为 iLink 薄路由，原文件会被备份）
      - 迁移时按照 project-context.md 的标准结构（项目概述、技术约束、模块职责、架构原则、构建测试等）重新组织内容
      - 两个文件的内容可能有重叠也可能互补，MUST 合并去重后写入 project-context.md
 
@@ -143,7 +166,7 @@
 
 ---
 
-### 步骤 4.5：注入 Issue System 集成块
+### 步骤 5.5：注入 Issue System 集成块
 
 读取当前 `project-context.md`，检查是否已包含 "Issue System 集成" 块（搜索字符串 `AI 行为规则（CRITICAL，所有 AI 必须遵守）— Issue System 集成`）。
 
@@ -178,9 +201,9 @@
 
 ## 更新入口文件
 
-### 步骤 5：更新 CLAUDE.md
+### 步骤 6：更新 CLAUDE.md
 
-读取项目根目录的 `CLAUDE.md` 文件，按以下情况分别处理（**与步骤 6 AGENTS.md 处理逻辑完全一致**）：
+读取项目根目录的 `CLAUDE.md` 文件，按以下情况分别处理（**与步骤 7 AGENTS.md 处理逻辑完全一致**）：
 
 | 情况 | 判定条件 | 处理动作 |
 |------|---------|---------|
@@ -197,13 +220,13 @@
 1. **备份原文件**：将原 `CLAUDE.md` 重命名为 `CLAUDE.md.bak.<YYYYMMDD_HHMMSS>`（使用当前时间戳，例如 `CLAUDE.md.bak.20260409_153022`）。使用 Bash 工具执行 `mv` 命令。
 
 2. **确认内容已迁移**：
-   - 如果步骤 4 已经将原 CLAUDE.md 内容迁移到 `project-context.md` → 直接进入下一步
+   - 如果步骤 5 已经将原 CLAUDE.md 内容迁移到 `project-context.md` → 直接进入下一步
    - 如果 `project-context.md` 已存在但缺少原 CLAUDE.md 中的关键信息 → 补充到 project-context.md 的对应章节
    - 迁移时**保留所有有价值的项目知识**，不丢失任何技术约束、构建命令、模块说明、架构决策
 
 3. **重写 CLAUDE.md** 为 iLink 薄路由内容（见下文模板）。
 
-4. **明确告知用户**：在最终报告（步骤 8）中说明：
+4. **明确告知用户**：在最终报告（步骤 9）中说明：
    - 已备份原 CLAUDE.md 到 `CLAUDE.md.bak.<时间戳>`
    - 已将原内容迁移到 `project-context.md`
    - **强烈建议人工核对** project-context.md 的迁移结果是否完整准确
@@ -241,15 +264,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 /ilink-init <story>     → 创建 Story 目录和需求模板
 /ilink-pm <story>       → PM：需求分析 → 业务合同
 /ilink-design <story>   → Designer：技术设计 → 文件级任务清单
+/ilink-lightme <story>  → Lightme：设计拷问员（可选，v1.8.0+；MUST 在全新会话执行）
+/ilink-approve <story>  → Human-Gate：审核推进 + Coach 协作复盘
 /ilink-coder <story>    → Coder：按设计编码 → 直接写入磁盘
 /ilink-qa <story>       → QA：代码审查 → 审查报告
 ```
-
-Designer 完成后默认需要人类审核（Human-Gate），审核通过后在终端执行：
-`bash .claude/commands/ilink-approve <story>` 或 `bash .codex/commands/ilink-approve <story>`
 ```
 
-### 步骤 6：更新 AGENTS.md
+### 步骤 7：更新 AGENTS.md
 
 读取项目根目录的 `AGENTS.md` 文件，按以下情况分别处理：
 
@@ -266,13 +288,13 @@ Designer 完成后默认需要人类审核（Human-Gate），审核通过后在�
 1. **备份原文件**：将原 `AGENTS.md` 重命名为 `AGENTS.md.bak.<YYYYMMDD_HHMMSS>`（使用当前时间戳，例如 `AGENTS.md.bak.20260409_153022`）。使用 Bash 工具执行 `mv` 命令。
 
 2. **确认内容已迁移**：
-   - 如果步骤 4 已经将原 AGENTS.md 内容迁移到 `project-context.md` → 直接进入下一步
+   - 如果步骤 5 已经将原 AGENTS.md 内容迁移到 `project-context.md` → 直接进入下一步
    - 如果 `project-context.md` 已存在但缺少原 AGENTS.md 中的关键信息 → 补充到 project-context.md 的对应章节
    - 迁移时**保留所有有价值的项目知识**，不丢失任何技术约束、模块说明、架构决策
 
 3. **重写 AGENTS.md** 为 iLink 薄路由内容（见下文模板）。
 
-4. **明确告知用户**：在最终报告（步骤 9）中说明：
+4. **明确告知用户**：在最终报告（步骤 10）中说明：
    - 已备份原 AGENTS.md 到 `AGENTS.md.bak.<时间戳>`
    - 已将原内容迁移到 `project-context.md`
    - **强烈建议人工核对** project-context.md 的迁移结果是否完整准确
@@ -307,12 +329,13 @@ Designer 完成后默认需要人类审核（Human-Gate），审核通过后在�
 ### 快速开始
 
 1. 读取 `project-context.md` 了解项目
-2. 创建 Story：执行 `ilink-init <story-id>`（或 `bash .codex/commands/ilink-init <story-id>`）
-3. 按流水线执行：`ilink-pm` → `ilink-design` → `ilink-approve` → `ilink-coder` → `ilink-qa`
+2. 创建 Story：执行 `/ilink-init <story-id> <usage-value>`
+3. 按流水线执行：`/ilink-pm` → `/ilink-design` → `/ilink-approve` → `/ilink-coder` → `/ilink-qa`
+4. 可选：在 `/ilink-design` 之后、`/ilink-approve` 之前，于**全新 Claude Code 会话**输入 `/ilink-lightme <story>` 触发设计拷问员（v1.8.0+）
 
 ### 角色触发
 
-当用户输入 `ilink-pm <story>`、`ilink-design <story>`、`ilink-coder <story>`、`ilink-qa <story>` 时：
+当用户输入 `ilink-pm <story>`、`ilink-design <story>`、`ilink-coder <story>`、`ilink-qa <story>`、`ilink-lightme <story>` 时：
 
 **Codex CLI 用户**：请先读取 `.codex/codex-commands.md`，按其中指令执行对应角色任务。
 
@@ -327,7 +350,7 @@ Designer 完成后默认需要人类审核（Human-Gate），审核通过后在�
 | `bash .codex/commands/ilink-approve <story>` | 审核推进 |
 ```
 
-### 步骤 7：创建 iLink-doc 目录
+### 步骤 8：创建 iLink-doc 目录
 
 如果 `iLink-doc/` 目录不存在，创建它。
 
@@ -335,7 +358,7 @@ Designer 完成后默认需要人类审核（Human-Gate），审核通过后在�
 
 ## 验证与报告
 
-### 步骤 8：执行验证
+### 步骤 9：执行验证
 
 检查以下项目并输出报告：
 
@@ -372,7 +395,7 @@ Designer 完成后默认需要人类审核（Human-Gate），审核通过后在�
 4. 如确认迁移完整，可删除 .bak 备份文件；否则保留备份待人工核对后再删
 ```
 
-### 步骤 9：输出下一步操作
+### 步骤 10：输出下一步操作
 
 ```
 ✅ iLink Bootstrap 完成！

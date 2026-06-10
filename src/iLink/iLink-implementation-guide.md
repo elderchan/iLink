@@ -441,7 +441,7 @@ preamble 内容跨七个文件**完全一致**，仅 `<role>` 替换为各角色
 | 平台 | Plug 体系支持状态 |
 |------|------------------|
 | Codex CLI | ✅ v1.8.0 首发（bootstrap 与 codex-commands.md 已包含 plug 初始化） |
-| Claude CLI | ⏳ 待跟进（plug 体系协议已生效，bootstrap 模板待更新） |
+| Claude CLI | ✅ v1.8.0 首发（bootstrap 与 ilink-lightme.md/.sh 已包含 plug 初始化与 lightme 实现） |
 | Qoder CLI | ✅ v1.8.0 首发（bootstrap 与 SKILL.md 已包含 plug 初始化） |
 | Gemini CLI | ⏳ 待跟进 |
 

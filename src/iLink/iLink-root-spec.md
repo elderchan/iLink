@@ -1139,7 +1139,7 @@ Timestamp 和 SHA1 MUST 通过 shell 命令实际获取（按 §5.4 规则），
 | 平台 | lightme 支持状态 |
 |------|------------------|
 | Codex CLI | ✅ v1.8.0 首发 |
-| Claude CLI | ⏳ 待 Codex 验证后跟进 |
+| Claude CLI | ✅ v1.8.0 首发（bootstrap 与 ilink-lightme.md/.sh 已包含 plug 初始化与 lightme 实现） |
 | Qoder CLI | ✅ v1.8.0 首发 |
 | Gemini CLI | ⏳ 待 Codex 验证后跟进 |
 
@@ -1458,7 +1458,9 @@ iLink 的每个角色 MUST 由人类手动触发：
 │   ├── ilink-bootstrap.md             ← 项目冷启动（Slash Command）
 │   ├── ilink-domain.md                ← 认知模式：领域知识生成（Slash Command，v1.3新增）
 │   ├── ilink-pull.md                  ← Issue System 拉取 Slash Command（AI 薄壳）
-│   └── ilink-pull.sh                  ← Issue System 拉取 bash 脚本（由 .md 调用）
+│   ├── ilink-pull.sh                  ← Issue System 拉取 bash 脚本（由 .md 调用）
+│   ├── ilink-lightme.md               ← Lightme 可选拷问 Slash Command（v1.8.0+，AI 薄壳）
+│   └── ilink-lightme.sh               ← Lightme 预检 bash 脚本（v1.8.0+，由 .md 调用）
 ├── .codex/commands/                    ← Codex CLI 平台
 │   ├── _common.sh
 │   ├── ilink-init
