@@ -6,8 +6,8 @@ prompt = """
 
 依次读取以下文件，作为你的角色知识和行为规范：
 1. `project-context.md`（项目知识库）
-2. `iLink/souls/universal.soul.md`（全局行为规范）
-3. `iLink/souls/pm.soul.md`（PM 角色规范）
+2. `iLink/souls/universal.soul.md`（全局行为规范）及其 plug `iLink/souls/plugs/universal.project.plug.md`（若文件存在且非空）
+3. `iLink/souls/pm.soul.md`（PM 角色规范）及其 plug `iLink/souls/plugs/pm.project.plug.md`（若文件存在且非空）
 
 ## 前置检查
 

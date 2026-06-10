@@ -1141,9 +1141,7 @@ Timestamp 和 SHA1 MUST 通过 shell 命令实际获取（按 §5.4 规则），
 | Codex CLI | ✅ v1.8.0 首发 |
 | Claude CLI | ✅ v1.8.0 首发（bootstrap 与 ilink-lightme.md/.sh 已包含 plug 初始化与 lightme 实现） |
 | Qoder CLI | ✅ v1.8.0 首发 |
-| Gemini CLI | ⏳ 待 Codex 验证后跟进 |
-
-跨平台跟进**无固定 deadline**。期间非 Codex 平台用户可通过 Codex 跑 lightme，或在 approve 前由 Leader 手动审视设计。
+| Gemini CLI | ✅ v1.8.0 首发（bootstrap 与 ilink-lightme.toml/.sh 已包含 plug 初始化与 lightme 实现） |
 
 ---
 
@@ -1502,8 +1500,13 @@ iLink 的每个角色 MUST 由人类手动触发：
 │   ├── ilink-qa.toml
 │   ├── ilink-refine.toml
 │   ├── ilink-domain.toml
+│   ├── ilink-approve.toml              ← Human-Gate 推进（含 Coach 子流程）
+│   ├── ilink-status.toml
+│   ├── ilink-bootstrap.toml            ← 项目冷启动
 │   ├── ilink-pull.toml                 ← Issue System 拉取命令定义（调用同目录 .sh）
-│   └── ilink-pull.sh                   ← Issue System 拉取 bash 脚本（由 .toml 调用）
+│   ├── ilink-pull.sh                   ← Issue System 拉取 bash 脚本（由 .toml 调用）
+│   ├── ilink-lightme.toml              ← Lightme 可选拷问（v1.8.0+）
+│   └── ilink-lightme.sh                ← Lightme bash 预检脚本（由 .toml 调用，v1.8.0+）
 └── src/                                ← 源代码
 ```
 

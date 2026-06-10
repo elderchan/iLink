@@ -443,9 +443,7 @@ preamble 内容跨七个文件**完全一致**，仅 `<role>` 替换为各角色
 | Codex CLI | ✅ v1.8.0 首发（bootstrap 与 codex-commands.md 已包含 plug 初始化） |
 | Claude CLI | ✅ v1.8.0 首发（bootstrap 与 ilink-lightme.md/.sh 已包含 plug 初始化与 lightme 实现） |
 | Qoder CLI | ✅ v1.8.0 首发（bootstrap 与 SKILL.md 已包含 plug 初始化） |
-| Gemini CLI | ⏳ 待跟进 |
-
-待跟进平台的用户：plug 协议本身已经生效（AI 加载 soul 时按 Root Spec §4.7.3 自动加载 plug），但 bootstrap 不会创建空模板，需手动建立 `iLink/souls/plugs/` 目录与各角色文件。框架仓库 `src/iLink/souls/plugs/` 内的 6 个空模板可直接 copy 使用。
+| Gemini CLI | ✅ v1.8.0 首发（bootstrap 与 ilink-lightme.toml/.sh 已包含 plug 初始化） |
 
 ---
 

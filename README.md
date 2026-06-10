@@ -384,7 +384,7 @@ iLink 可以与上述方案共存，为其提供补充能力：
 - **Soul 三层体系（项目级 Plug）**：在 framework soul 之外引入项目级 `<role>.project.plug.md` 补充层。AI 加载角色时同时持有 framework soul + 项目 plug，**加法语义**（两份均视为约束，框架不主动检测冲突也不仲裁优先级）。框架升级时 plug 不动，项目定制不受影响。bootstrap 自动创建 6 个角色（pm / design / coder / qa / domain / lightme）的空模板；universal plug 由项目按需自建。详见 Root Spec §4.7、Implementation Guide §1.5、Human Guide §12
 - **`/ilink-lightme` 设计拷问员**：design 完成、approve 之前的**可选**独立拷问命令。在全新 Host CLI 会话中运行（隔离护短），以对抗（协作）人格拷问设计，照亮盲区；按 Human-Gate 就地沉淀澄清的术语/决策到 `project-context.md` 和已存在的 `domain-knowledge.md`（绝不创建 domain 文件）；输出审计报告 `<story>-lightme.md`，含 Upstream_SHA1 锚定 design 版本，三态处置（RESOLVED / TO-FIX / ACCEPTED-RISK），SHALL NOT 下"通过/不通过"结论。通用拷问内核，行业特化走 `lightme.project.plug.md`。详见 Root Spec §4.8、`lightme.soul.md`、Human Guide §13
 
-> **跨平台跟进现状**：v1.8.0 **Codex / Qoder / Claude CLI 三平台均已首发**完整实现（bootstrap、命令、脚本全套）。Gemini CLI 待跟进，无固定 deadline——Gemini 用户的 plug **协议**已生效（AI 加载 soul 时按 Root Spec §4.7.3 自动加载 plug），仅 bootstrap 模板创建与 lightme 命令实现需要手动 copy 或等跟进。
+> **跨平台跟进现状**：v1.8.0 **Codex / Qoder / Claude / Gemini CLI 四平台均已首发**完整实现（bootstrap、命令、脚本全套）。
 
 ### v1.7.0 变更
 

@@ -17,6 +17,7 @@ prompt = """
 - `iLink/souls/qa.soul.md`
 - `iLink/souls/domain.soul.md`
 - `iLink/souls/coach.soul.md`（v1.6.0 新增）
+- `iLink/souls/lightme.soul.md`（设计拷问员角色规范，v1.8.0+，启用 `/ilink-lightme` 时 MUST）
 
 如果以上文件全部缺失，停止执行，提示用户先复制 iLink 框架。
 
@@ -24,17 +25,35 @@ prompt = """
 
 确认 `.gemini/commands/` 下存在以下 `.toml` 文件：
 - `ilink-init.toml`, `ilink-pm.toml`, `ilink-design.toml`, `ilink-coder.toml`, `ilink-qa.toml`, `ilink-refine.toml`, `ilink-domain.toml`, `ilink-approve.toml`, `ilink-status.toml`
+- `ilink-pull.toml`（Issue System 拉取入口）+ `ilink-pull.sh`（bash 脚本本体）
+- `ilink-lightme.toml`（设计拷问员入口，v1.8.0+）+ `ilink-lightme.sh`（bash 预检脚本，v1.8.0+）
 
 > v1.6.0 起 `ilink-approve.toml` 内含 Coach 子流程逻辑（协作复盘 + Status 推进）。
 
-缺失时给出警告（不阻塞）。
+缺失时给出警告（不阻塞）。`ilink-pull.*` / `ilink-lightme.*` 缺失时除 warn 外提示用户：缺该脚本则对应命令不可用，但其他流水线命令不受影响。
 
-## 步骤 3：检查现有 project-context.md
+## 步骤 3：Soul plug 体系初始化（v1.8.0+）
 
-读取 `project-context.md`，如果已存在且内容完整，跳到步骤 5。
-如果不存在或内容为空/模板状态，执行步骤 4。
+> 本步骤自 iLink v1.8.0 引入。详见 Root Spec §4.7、Implementation Guide §1.5。
 
-## 步骤 4：分析项目并生成 project-context.md
+通过 shell 工具，确保 `iLink/souls/plugs/` 目录及 6 个角色空模板存在（**已存在则不覆盖**）：
+
+1. `mkdir -p iLink/souls/plugs`
+2. 对 pm / design / coder / qa / domain / lightme 六个角色，逐一检查 `iLink/souls/plugs/<role>.project.plug.md` 是否存在
+3. 若不存在 → 写入 Implementation Guide §1.5.2 定义的空模板内容（含顶部 4 行注释 + 分隔线 + italic 占位说明，`<role>` 替换为具体角色名）
+4. 若已存在 → SHALL NOT 覆盖（可能含项目已积累的规则）
+
+`universal.project.plug.md` SHALL NOT 由 bootstrap 主动创建（由项目按需自建，参见 Root Spec §4.7.5）。
+
+完成后在最终报告（步骤 10）中追加一行：
+"已确保 iLink/souls/plugs/ 下含 6 个角色 plug 模板；Leader 可按需填入项目级规则，universal.project.plug.md 按需自行创建。"
+
+## 步骤 4：检查现有 project-context.md
+
+读取 `project-context.md`，如果已存在且内容完整，跳到步骤 6。
+如果不存在或内容为空/模板状态，执行步骤 5。
+
+## 步骤 5：分析项目并生成 project-context.md
 
 **主动探索项目结构**，使用 Glob、Grep、Read 工具分析：
 
@@ -49,29 +68,30 @@ prompt = """
 
 **重要**：`project-context.md` 是项目知识的**单一事实源**。如果从 CLAUDE.md / AGENTS.md 迁移了内容，MUST 完整写入，不要使用引用方式。
 
-## 步骤 5：更新 CLAUDE.md
+## 步骤 6：更新 CLAUDE.md
 
 读取 `CLAUDE.md`，按以下情况处理：
 - **不存在** → 创建包含 iLink 薄路由的最小文件
 - **已是 iLink**（包含"iLink 协作协议"关键词）→ 跳过
 - **非 iLink** → 备份为 `CLAUDE.md.bak.YYYYMMDD_HHMMSS`，迁移内容到 project-context.md 后，重写为 iLink 薄路由
 
-薄路由 MUST 包含：AI 行为规则（读取/写入/`/init` 处理/本文件保护规则）、iLink 协作协议、核心文件列表、流水线命令说明。
+薄路由 MUST 包含：AI 行为规则（读取/写入/`/init` 处理/本文件保护规则）、iLink 协作协议、核心文件列表、流水线命令说明。流水线命令列表 SHOULD 含 `/ilink-lightme`（设计拷问员，可选，v1.8.0+）。
 
-## 步骤 6：更新 AGENTS.md
+## 步骤 7：更新 AGENTS.md
 
-处理逻辑同步骤 5，文件名为 `AGENTS.md`。
+处理逻辑同步骤 6，文件名为 `AGENTS.md`。
 
-薄路由 MUST 包含：AI 行为规则、iLink 协作协议、核心文件表格、快速开始步骤、角色触发说明、Shell 工具表格。
+薄路由 MUST 包含：AI 行为规则、iLink 协作协议、核心文件表格、快速开始步骤、角色触发说明。快速开始 SHOULD 在 design 与 approve 之间标注可选的 `/ilink-lightme` 拷问步骤（v1.8.0+，全新会话执行）。
 
-## 步骤 7：创建 iLink-doc 目录
+## 步骤 8：创建 iLink-doc 目录
 
 如果 `iLink-doc/` 目录不存在，创建它。
 
-## 步骤 8：执行验证
+## 步骤 9：执行验证
 
 输出验证报告表格：
 - iLink 框架文件：✅ / ❌
+- iLink/souls/plugs/ 6 个角色模板（v1.8.0+）：✅ / 🆕
 - project-context.md：✅ 已存在 / 🆕 已生成 / 🔄 已迁移 / ❌ 缺失
 - CLAUDE.md iLink 引导：✅ / 🆕 / 🔄
 - AGENTS.md iLink 引导：✅ / 🆕 / 🔄
@@ -80,16 +100,19 @@ prompt = """
 
 如果发生迁移，输出迁移说明警告。
 
-## 步骤 9：输出下一步操作
+## 步骤 10：输出下一步操作
 
 ```
 ✅ iLink Bootstrap 完成！
+
+已确保 iLink/souls/plugs/ 下含 6 个角色 plug 模板；Leader 可按需填入项目级规则，universal.project.plug.md 按需自行创建。
 
 下一步：
 1. 检查 project-context.md，补充或修正项目信息
 2. 检查 CLAUDE.md 和 AGENTS.md 中的 iLink 引导信息
 3. 提交 Bootstrap 产出：git add project-context.md CLAUDE.md AGENTS.md iLink-doc/
    git commit -m "iLink bootstrap: 初始化项目协作环境"
-4. 创建第一个 Story：/ilink-init <story-id>
+4. 创建第一个 Story：/ilink-init <story-id> <usage-value>
+5. （可选）高风险设计时跑 `/ilink-lightme <story-id>` 拷问（v1.8.0+，全新 Gemini 会话）
 ```
 """

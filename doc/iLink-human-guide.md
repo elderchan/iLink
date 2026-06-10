@@ -1166,9 +1166,9 @@ lightme 提供约 **70% 的隔离效果**，剩余盲区靠你的领域经验补
 | Codex CLI | ✅ v1.8.0 首发 |
 | Claude CLI | ✅ v1.8.0 首发（commands/ilink-lightme.md + .sh） |
 | Qoder CLI | ✅ v1.8.0 首发（skills/ilink-lightme/SKILL.md + commands/ilink-lightme） |
-| Gemini CLI | ⏳ 待跟进（无固定 deadline） |
+| Gemini CLI | ✅ v1.8.0 首发（commands/ilink-lightme.toml + .sh） |
 
-Gemini 平台用户：可在 approve 前由 Leader 手动审视设计；或通过 Codex / Claude / Qoder 任一支持平台跑 lightme（lightme 报告本身平台中立，跨平台可共享）。
+四平台均已支持，lightme 报告本身平台中立，跨平台可共享。
 
 ---
 

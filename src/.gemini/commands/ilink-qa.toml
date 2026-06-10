@@ -30,9 +30,9 @@ prompt = """
 ## 准备工作
 
 依次读取以下文件：
-1. `project-context.md`
-2. `iLink/souls/universal.soul.md`
-3. `iLink/souls/qa.soul.md`
+1. `project-context.md`（项目知识库）
+2. `iLink/souls/universal.soul.md`（全局行为规范）及其 plug `iLink/souls/plugs/universal.project.plug.md`（若文件存在且非空）
+3. `iLink/souls/qa.soul.md`（QA 角色规范）及其 plug `iLink/souls/plugs/qa.project.plug.md`（若文件存在且非空）
 
 ## 前置检查
 
