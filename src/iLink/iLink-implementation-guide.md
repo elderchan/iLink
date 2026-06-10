@@ -491,11 +491,11 @@ Bootstrap 是项目级的**一次性冷启动**，不是每次开发 Story 都�
 | Claude CLI | `.claude/commands/ilink-bootstrap.md` | — | `/ilink-bootstrap` |
 | Codex CLI | `.codex/codex-commands.md` 中 `ilink-bootstrap` 章节 | `.codex/commands/ilink-bootstrap`（AI 用 Bash 工具调用） | `/ilink-bootstrap` |
 | Qoder CLI | `.qoder/commands/ilink-bootstrap.md` | `.qoder/commands/ilink-bootstrap`（AI 内部调用） | `/ilink-bootstrap` |
-| Gemini CLI | `.gemini/commands/ilink-bootstrap.toml` | `.gemini/commands/ilink-bootstrap`（AI 内部调用） | `/ilink-bootstrap` |
+| Gemini CLI | `.gemini/commands/ilink-bootstrap.toml` | — | `/ilink-bootstrap` |
 
 **所有平台使用者统一在对话窗口输入 `/ilink-bootstrap`**；预检查脚本是 AI 内部实现细节，使用者无需打开操作系统 shell。
 
-三个平台的 Bootstrap 命令定义 MUST 在执行步骤、状态判定逻辑（A/B/C/D 四种情况）、入口文件模板（5 条 AI 行为规则）、project-context.md 结构上保持**完全一致**，仅在 Shell 脚本路径和平台特定引用上有差异。
+四个平台的 Bootstrap 命令定义 MUST 在执行步骤、状态判定逻辑（A/B/C/D 四种情况）、入口文件模板（5 条 AI 行为规则）、project-context.md 结构上保持**完全一致**，仅在 Shell 脚本路径和平台特定引用上有差异。
 
 #### 2.3.1 执行步骤
 

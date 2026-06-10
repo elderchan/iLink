@@ -5,9 +5,9 @@ prompt = """
 ## 准备工作
 
 依次读取：
-1. `project-context.md`
-2. `iLink/souls/universal.soul.md`
-3. `iLink/souls/domain.soul.md`
+1. `project-context.md`（项目知识库）
+2. `iLink/souls/universal.soul.md`（全局行为规范）及其 plug `iLink/souls/plugs/universal.project.plug.md`（若文件存在且非空）
+3. `iLink/souls/domain.soul.md`（Domain Engineer 角色规范）及其 plug `iLink/souls/plugs/domain.project.plug.md`（若文件存在且非空）
 
 ## 执行任务
 

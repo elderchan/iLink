@@ -18,11 +18,13 @@ prompt = """
 
 ## 执行任务
 
-调用本目录下的 bash 脚本执行实际拉取（脚本完成所有校验、HTTP 请求、JSON 解析、文件写入）：
+调用本目录下的 bash 脚本执行实际拉取（脚本完成所有校验、HTTP 请求、JSON 解析、文件写入）。**这是 AI 内部调用,使用者不进 OS shell**：
 
 ```bash
 bash .gemini/commands/ilink-pull.sh {{args}}
 ```
+
+> 上述 `bash` 命令是 AI 用 shell 工具内部执行的实现细节,使用者**无需也不应当**在操作系统 shell 中直接运行。
 
 **SHALL NOT**：
 - 自己拼 URL、自己解析 JSON、自己写文件——这些全部由 bash 脚本完成

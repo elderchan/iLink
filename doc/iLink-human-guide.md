@@ -1082,9 +1082,7 @@ iLink 框架升级会同步更新 `iLink/souls/*.soul.md`，但 `iLink/souls/plu
 | Codex CLI | ✅ v1.8.0 首发（bootstrap 已包含 plug 初始化） |
 | Claude CLI | ✅ v1.8.0 首发（bootstrap 已包含 plug 初始化） |
 | Qoder CLI | ✅ v1.8.0 首发（bootstrap 已包含 plug 初始化） |
-| Gemini CLI | ⏳ 待跟进（无固定 deadline） |
-
-Gemini 平台用户：plug 协议本身已经生效（AI 加载 soul 时按 Root Spec §4.7.3 自动加载 plug），但 bootstrap 不会自动创建空模板，需手动建立 `iLink/souls/plugs/` 目录与各角色文件——可直接从 iLink 框架仓库 `src/iLink/souls/plugs/` copy 使用。
+| Gemini CLI | ✅ v1.8.0 首发（bootstrap 已包含 plug 初始化） |
 
 ---
 
@@ -1106,9 +1104,9 @@ Gemini 平台用户：plug 协议本身已经生效（AI 加载 soul 时按 Root
 | 纯 UI 改动、文案修改 | ❌ 跳过 |
 | 独立小功能、修复明显 bug | ❌ 跳过 |
 
-### 13.3 操作流程（Codex / Claude / Qoder 用户，v1.8.0 首发）
+### 13.3 操作流程（v1.8.0 首发，四平台均已支持）
 
-**第一步**：**打开一个全新的 Host CLI 会话**（不是接着 design 那个——同会话会护短，详见 §13.7）。Claude Code / Codex / Qoder 任一平台均可。
+**第一步**：**打开一个全新的 Host CLI 会话**（不是接着 design 那个——同会话会护短，详见 §13.7）。Claude Code / Codex / Qoder / Gemini 任一平台均可。
 
 **第二步**：在对应 CLI 的对话窗口输入：
 
@@ -1116,7 +1114,7 @@ Gemini 平台用户：plug 协议本身已经生效（AI 加载 soul 时按 Root
 /ilink-lightme kcia-1520
 ```
 
-AI 会自动加载 design.master.md、project-context.md、相关 domain 知识，校验 design 存在并算出 Upstream_SHA1（内部调用 `.codex/commands/ilink-lightme` 预检脚本，使用者不需要单独跑），然后以对抗（协作）人格拷问设计——每次问一个问题、给一个推荐答案。你逐条回答，AI 追问到底再换方向。
+AI 会自动加载 design.master.md、project-context.md、相关 domain 知识，校验 design 存在并算出 Upstream_SHA1（内部调用对应平台的预检脚本——`.codex/commands/ilink-lightme`、`.claude/commands/ilink-lightme.sh`、`.qoder/commands/ilink-lightme` 或 `.gemini/commands/ilink-lightme.sh`，使用者不需要单独跑），然后以对抗（协作）人格拷问设计——每次问一个问题、给一个推荐答案。你逐条回答，AI 追问到底再换方向。
 
 ### 13.4 拷问结束后，AI 生成什么
 
