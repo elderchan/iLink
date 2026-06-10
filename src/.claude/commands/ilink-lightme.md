@@ -32,13 +32,15 @@
 4. `iLink-doc/$ARGUMENTS/$ARGUMENTS-design.master.md`（拷问对象）
 5. `iLink-doc/domain/<相关模块>-domain-knowledge.md`（若需求或 design 涉及该模块；不存在时进入降级模式，详见 lightme.soul.md §2.4）
 
-## 调用预检脚本
+## 调用预检脚本（AI 内部调用，使用者不进 OS shell）
 
-使用 Bash 工具调用本目录下的 bash 脚本完成预检（校验 design.master.md 存在性 + 提取 Status + 计算 Upstream_SHA1 + 报告 domain 覆盖）：
+使用者**只在 Claude Code 对话窗口输入 `/ilink-lightme <story>`**，AI 收到后用 Bash 工具内部调用本目录下的 bash 脚本完成预检（校验 design.master.md 存在性 + 提取 Status + 计算 Upstream_SHA1 + 报告 domain 覆盖）：
 
 ```bash
 bash .claude/commands/ilink-lightme.sh $ARGUMENTS
 ```
+
+> 上述 `bash` 命令是 AI 用 Bash 工具内部执行的实现细节，使用者**无需也不应当**在操作系统 shell 中直接运行。
 
 **脚本退出码非 0 时**：SHALL NOT 进入拷问主流程；将脚本 stderr **原样转给用户后停止**。典型退出场景：
 

@@ -1080,11 +1080,11 @@ iLink 框架升级会同步更新 `iLink/souls/*.soul.md`，但 `iLink/souls/plu
 | 平台 | Plug 体系支持状态 |
 |------|------------------|
 | Codex CLI | ✅ v1.8.0 首发（bootstrap 已包含 plug 初始化） |
-| Claude CLI | ⏳ 待跟进 |
-| Qoder CLI | ⏳ 待跟进 |
-| Gemini CLI | ⏳ 待跟进 |
+| Claude CLI | ✅ v1.8.0 首发（bootstrap 已包含 plug 初始化） |
+| Qoder CLI | ✅ v1.8.0 首发（bootstrap 已包含 plug 初始化） |
+| Gemini CLI | ⏳ 待跟进（无固定 deadline） |
 
-待跟进平台的用户：plug 协议本身已经生效（AI 加载 soul 时按 Root Spec §4.7.3 自动加载 plug），但 bootstrap 不会自动创建空模板，需手动建立 `iLink/souls/plugs/` 目录与各角色文件——可直接从 iLink 框架仓库 `src/iLink/souls/plugs/` copy 使用。
+Gemini 平台用户：plug 协议本身已经生效（AI 加载 soul 时按 Root Spec §4.7.3 自动加载 plug），但 bootstrap 不会自动创建空模板，需手动建立 `iLink/souls/plugs/` 目录与各角色文件——可直接从 iLink 框架仓库 `src/iLink/souls/plugs/` copy 使用。
 
 ---
 
@@ -1106,11 +1106,11 @@ iLink 框架升级会同步更新 `iLink/souls/*.soul.md`，但 `iLink/souls/plu
 | 纯 UI 改动、文案修改 | ❌ 跳过 |
 | 独立小功能、修复明显 bug | ❌ 跳过 |
 
-### 13.3 操作流程（Codex CLI 用户，v1.8.0 首发）
+### 13.3 操作流程（Codex / Claude / Qoder 用户，v1.8.0 首发）
 
-**第一步**：**打开一个全新的 Codex 会话**（不是接着 design 那个——同会话会护短，详见 §13.7）。
+**第一步**：**打开一个全新的 Host CLI 会话**（不是接着 design 那个——同会话会护短，详见 §13.7）。Claude Code / Codex / Qoder 任一平台均可。
 
-**第二步**：在 Codex 对话窗口输入：
+**第二步**：在对应 CLI 的对话窗口输入：
 
 ```
 /ilink-lightme kcia-1520
@@ -1164,11 +1164,11 @@ lightme 提供约 **70% 的隔离效果**，剩余盲区靠你的领域经验补
 | 平台 | lightme 支持状态 |
 |------|------------------|
 | Codex CLI | ✅ v1.8.0 首发 |
-| Claude CLI | ⏳ 待 Codex 验证后跟进 |
-| Qoder CLI | ⏳ 待跟进 |
-| Gemini CLI | ⏳ 待跟进 |
+| Claude CLI | ✅ v1.8.0 首发（commands/ilink-lightme.md + .sh） |
+| Qoder CLI | ✅ v1.8.0 首发（skills/ilink-lightme/SKILL.md + commands/ilink-lightme） |
+| Gemini CLI | ⏳ 待跟进（无固定 deadline） |
 
-非 Codex 平台用户：可通过 Codex 跑 lightme，或在 approve 前由 Leader 手动审视设计。
+Gemini 平台用户：可在 approve 前由 Leader 手动审视设计；或通过 Codex / Claude / Qoder 任一支持平台跑 lightme（lightme 报告本身平台中立，跨平台可共享）。
 
 ---
 

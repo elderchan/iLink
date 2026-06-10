@@ -17,7 +17,11 @@ if [[ $# -ne 1 || -z "${1:-}" ]]; then
 fi
 
 story="$1"
-base_dir="iLink-doc/${story}"
+
+# 定位项目根：脚本位于 <project_root>/.claude/commands/ilink-lightme.sh
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+base_dir="${PROJECT_ROOT}/iLink-doc/${story}"
 
 # ============================================================
 # 2. Story 目录与 design.master.md 存在性校验
@@ -68,7 +72,7 @@ sha1=$(shasum "$design_doc" | awk '{print $1}')
 # ============================================================
 # 5. 报告 domain 覆盖率(informational only)
 # ============================================================
-domain_dir="iLink-doc/domain"
+domain_dir="${PROJECT_ROOT}/iLink-doc/domain"
 domain_count=0
 if [[ -d "$domain_dir" ]]; then
   domain_count=$(find "$domain_dir" -maxdepth 1 -name '*-domain-knowledge.md' 2>/dev/null | wc -l | tr -d ' ')

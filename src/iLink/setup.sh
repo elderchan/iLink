@@ -111,7 +111,35 @@ if [[ -d "$PROJECT_ROOT/iLink-doc/jzjy-0000" || -d "$PROJECT_ROOT/iLink-doc/kcia
   echo "  ⚠ 检测到示例 Story（jzjy-0000 / kcia-0000），建议新项目中删除"
 fi
 
-# 5. Update root AGENTS.md for Codex CLI (optional)
+# 5a. Update root CLAUDE.md for Claude CLI (optional)
+if [[ -d "$PROJECT_ROOT/.claude" ]]; then
+  echo "[5/5] 检测到 Claude 配置，更新根目录 CLAUDE.md..."
+  claude_file="$PROJECT_ROOT/CLAUDE.md"
+
+  if [[ -f "$claude_file" ]] && grep -q "iLink" "$claude_file" 2>/dev/null; then
+    echo "  ✓ CLAUDE.md 已包含 iLink 引导，跳过"
+  else
+    {
+      echo ""
+      echo "---"
+      echo ""
+      echo "## iLink"
+      echo ""
+      echo "本项目使用 iLink 流水线开发（v1.8.0）。"
+      echo ""
+      echo "使用者统一在 Claude Code 对话窗口输入 \`/ilink-*\` slash 命令："
+      echo "  \`/ilink-init <story> <usage-value>\` → \`/ilink-pm\` → \`/ilink-design\` → \`/ilink-approve\` → \`/ilink-coder\` → \`/ilink-qa <story> <usage-value>\`"
+      echo "  可选拷问（v1.8.0+，全新会话）：\`/ilink-lightme <story>\`"
+      echo "  辅助：\`/ilink-status [story]\`、\`/ilink-refine <story>\`、\`/ilink-pull <story>\`、\`/ilink-domain <module>\`"
+      echo ""
+      echo "AI 收到上述命令时，请读取 \`.claude/commands/\` 下对应的 \`.md\` 文件并按其中指令执行任务。"
+      echo "\`.claude/commands/*.sh\` 是 AI 用 Bash 工具内部调用的实现细节，使用者无需打开操作系统 shell。"
+    } >> "$claude_file"
+    echo "  ✓ iLink 引导已追加到 CLAUDE.md"
+  fi
+fi
+
+# 5b. Update root AGENTS.md for Codex CLI (optional)
 if [[ -d "$PROJECT_ROOT/.codex" ]]; then
   echo "[5/5] 检测到 Codex 配置，更新根目录 AGENTS.md..."
   agents_file="$PROJECT_ROOT/AGENTS.md"
