@@ -188,6 +188,14 @@ AI QA 读设计 + 读代码 → 输出审查报告（QA 不知道 Coder 的想�
 
 ---
 
+## v1.8.0 新增：项目级定制 + 设计拷问
+
+**Soul Plug（项目级角色规则补充）**：框架自带 soul 是通用规则，项目可在 `iLink/souls/plugs/` 下写项目级补充（如"金额必须 BigDecimal"），AI 自动加载，framework 升级不动 plug。
+
+**`/ilink-lightme`（设计拷问员）**：design 完成后、approve 前的可选拷问命令。在全新会话中运行（隔离护短），以对抗人格照亮设计盲区，输出三态盲区清单（RESOLVED / TO-FIX / ACCEPTED-RISK）。不下"通过/不通过"结论。四平台均已首发。
+
+---
+
 ## 完整审计链：每一步都有文件、有印章
 
 每个需求从提出到上线，产生一条完整的文档链：
@@ -231,7 +239,7 @@ Jira kcia-1520（登录失败统计接口）
 | Claude Code | `/ilink-pm`、`/ilink-design` 等 slash command |
 | Codex CLI | 在对话窗口输入 `/ilink-pm` 等 slash 命令 |
 | Qoder | `/ilink-pm`、`/ilink-design` 等 slash command |
-| **Gemini CLI** | `.gemini/commands/*.toml` | `/ilink-<role> <story>` |
+| Gemini CLI | `/ilink-pm`、`/ilink-design` 等 slash command |
 
 **张三用 Claude 做需求 A，李四用 Qoder 做需求 B，共享同一份项目知识库。**
 
@@ -405,13 +413,13 @@ iLink 的价值可以用三句话概括：
 
 | 命令 | 用途 | 频率 |
 |------|------|------|
-| `/ilink-init <需求ID>` | 创建需求 Story | 每个需求一次 |
+| `/ilink-init <需求ID> <usage-value>` | 创建需求 Story + usage 基线 | 每个需求一次 |
 | `/ilink-pull <需求ID>` | 从 Issue 系统拉取需求"描述"字段（v1.7.0 新增，可选） | init 后可选 |
 | `/ilink-pm <需求ID>` | AI 需求分析 | 每个 Story 一次 |
 | `/ilink-design <需求ID>` | AI 技术设计 | 每个 Story 一次 |
 | `/ilink-approve <需求ID>` | 人类审核推进 | 审核通过后 |
 | `/ilink-coder <需求ID>` | AI 编码实现 | 设计审核通过后 |
-| `/ilink-qa <需求ID>` | AI 代码审查 | 编码完成后 |
+| `/ilink-qa <需求ID> <usage-value>` | AI 代码审查 | 编码完成后 |
 
 ### 认知模式——Domain Knowledge 命令
 
@@ -424,6 +432,7 @@ iLink 的价值可以用三句话概括：
 | 命令 | 用途 | 频率 |
 |------|------|------|
 | `/ilink-refine <需求ID>` | 修订 STAGING 文档（逐条确认阻塞项） | STAGING 时使用 |
+| `/ilink-lightme <需求ID>` | 可选设计拷问员（v1.8.0+，必须在全新会话执行） | design 后、approve 前 |
 | `/ilink-status [需求ID]` | 查看流水线状态与下一步建议 | 随时 |
 | `/ilink-bootstrap` | 项目冷启动（生成知识库） | 每个项目一次 |
 
@@ -439,6 +448,8 @@ iLink 的价值可以用三句话概括：
 │   ├── iLink-root-spec.md
 │   ├── iLink-implementation-guide.md
 │   └── souls/                  ← 各角色行为规范（含 domain.soul.md）
+│       ├── lightme.soul.md     ← 设计拷问员（v1.8.0）
+│       └── plugs/              ← 项目级角色规则补充（v1.8.0）
 └── iLink-doc/                  ← 文档归档
     ├── kcia-1520/              ← 需求 A 的完整文档链（交付模式）
     ├── kcia-1521/              ← 需求 B 的完整文档链（交付模式）
@@ -470,4 +481,4 @@ A：执行 `/ilink-refine <需求ID>`，与 AI 逐条确认。你的决策会被
 
 ---
 
-*本材料基于 iLink Root Spec v1.6.0 制作 | 2026年5月*
+*本材料基于 iLink Root Spec v1.8.0 制作 | 2026年6月*

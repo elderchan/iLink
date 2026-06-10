@@ -1223,7 +1223,15 @@ lightme 提供约 **70% 的隔离效果**，剩余盲区靠你的领域经验补
 │       ├── coder.soul.md
 │       ├── qa.soul.md
 │       ├── domain.soul.md              ← 认知模式：Domain Engineer
-│       └── coach.soul.md               ← 协作复盘（v1.6.0）
+│       ├── coach.soul.md               ← 协作复盘（v1.6.0）
+│       ├── lightme.soul.md             ← 设计拷问员（v1.8.0）
+│       └── plugs/                       ← 项目级角色规则补充（v1.8.0）
+│           ├── pm.project.plug.md
+│           ├── design.project.plug.md
+│           ├── coder.project.plug.md
+│           ├── qa.project.plug.md
+│           ├── domain.project.plug.md
+│           └── lightme.project.plug.md
 │
 ├── iLink-doc/                      ← 文档归档（提交到 Git）
 │   ├── domain/                        ← Domain Knowledge（认知模式）

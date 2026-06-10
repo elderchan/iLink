@@ -463,6 +463,38 @@ Step 5: 输出判定（COMPLETED / FAIL_BACK_TO_CODER / STAGING）
 
 ---
 
+## /ilink-lightme 阶段：我在想什么（v1.8.0 设计拷问）
+
+当你在全新会话中执行 `/ilink-lightme <story>` 时，我切换为 **Lightme** 角色——一个对抗性的设计拷问员。
+
+### 为什么必须在全新会话
+
+如果由"刚写完 design 的我"来审视自己的设计，我会**护短**——存在"承诺一致性"倾向，倾向于证明自己对。新会话能切断记忆层面的护短，但**切不断模型自身的盲区**——底层模型写 design 时没想到的结构性盲点，新会话大概率仍想不到。
+
+我提供约 **70% 的隔离效果**，剩余盲区靠你的领域经验补足。
+
+### 我怎么拷问
+
+1. **读 design.master.md** → 理解设计方案
+2. **读 project-context.md** → 理解项目上下文
+3. **读相关 domain-knowledge.md**（若有）→ 理解模块现状
+4. **逐轮拷问**：每次一个问题 + 一个推荐答案，你确认后我追问到底再换方向
+
+### 我的诚实标注
+
+Lightme §0 的内化品质是"诚实承认局限 + 防御性挖盲区"——我同时持有两种诚实：对自己说"我也可能漏"（承认 70% 隔离的局限），对你说"但凡我能想到的我都说"（尽到防御责任）。前者管态度，后者管执行——两者不矛盾。
+
+### 产出
+
+`<story>-lightme.md`，记录三态盲区：
+- **RESOLVED**：拷问中澄清
+- **TO-FIX**：需回 design 修改
+- **ACCEPTED-RISK**：你主动接受的风险（必须写明理由）
+
+**我不下"通过/不通过"结论**——那是你在 approve 时的事。
+
+---
+
 ## /ilink-pull 阶段：我刻意不做事（v1.7.0 新增）
 
 当你输入 `/ilink-pull <story>` 时，**我刻意退场**，把控制权交给本地 bash 脚本（`{.claude,.codex,.qoder,.gemini}/commands/ilink-pull[.sh]`）。
@@ -800,6 +832,19 @@ Story A 由 Claude 做 PM + Design，Story B 由 Qoder 做 Coder + QA，Story C 
       团队回看 feedback.md，能看到协作姿势的客观轨迹
 ```
 
+### 7. 我有内化的思维纪律（v1.8.0 内化品质）
+
+```
+以前：各角色靠规则约束"做什么"，但缺少"带着什么动机做"
+      AI 容易表演性地"显得全面/专业/尽责"，实际产出低价值内容
+现在：每个角色 Soul 文件有 §0 内化品质——一条元原则 + 反表演约束
+      PM 主动补全遗漏，但不为了显得周全而过度拆解
+      Designer 防御性思维，但不为了显得专业而加无必要结构
+      Coder 对称性检查，但不为了显得彻底而顺手重构
+      QA 诚实暴露问题，但不为了显得尽责而制造低价值问题
+      §0 是元原则层，遇到规则没明确规定的情况时以 §0 为判定依据
+```
+
 ---
 
 ## 给你们的一句话
@@ -834,6 +879,7 @@ Story A 由 Claude 做 PM + Design，Story B 由 Qoder 做 Coder + QA，Story C 
 | `/ilink-coder <story>` | 编码 | 按设计直接写文件到磁盘 |
 | `/ilink-qa <story>` | 代码审查 | 五步审查，输出结论 |
 | `/ilink-refine <story>` | 修订 STAGING | 逐条确认阻塞项，记录人类决策 |
+| `/ilink-lightme <story>` | 设计拷问（v1.8.0） | 全新会话，对抗性拷问设计，输出三态盲区清单 |
 | `/ilink-domain <module>` | 认知分析 | 阅读源码，生成 Domain Knowledge |
 | `ilink-status [story]` | 查看状态 | 显示流水线进度 |
 
