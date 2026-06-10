@@ -330,24 +330,25 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 1. 读取 `project-context.md` 了解项目
 2. 创建 Story：执行 `/ilink-init <story-id> <usage-value>`
-3. 按流水线执行：`/ilink-pm` → `/ilink-design` → `/ilink-approve` → `/ilink-coder` → `/ilink-qa`
+3. 按流水线执行：`/ilink-pm` → `/ilink-design` → `/ilink-approve` → `/ilink-coder` → `/ilink-qa <story> <usage-value>`
 4. 可选：在 `/ilink-design` 之后、`/ilink-approve` 之前，于**全新 Claude Code 会话**输入 `/ilink-lightme <story>` 触发设计拷问员（v1.8.0+）
 
 ### 角色触发
 
-当用户输入 `ilink-pm <story>`、`ilink-design <story>`、`ilink-coder <story>`、`ilink-qa <story>`、`ilink-lightme <story>` 时：
+当用户输入 `/ilink-pm <story>`、`/ilink-design <story>`、`/ilink-coder <story>`、`/ilink-qa <story> <usage-value>`、`/ilink-lightme <story>` 等命令时：
 
-**Codex CLI 用户**：请先读取 `.codex/codex-commands.md`，按其中指令执行对应角色任务。
+**Claude Code 用户**：AI 读取 `.claude/commands/` 下对应的 `.md` 文件执行任务；`.claude/commands/*.sh` 是 AI 内部用 Bash 工具调用的实现细节，使用者无需在操作系统 shell 中直接运行。
 
 **其他 CLI 用户**：请先读取 `iLink/iLink-root-spec.md` §4（角色行为规范），然后读取对应的 Soul 文件执行任务。
 
-### Shell 工具
+### AI 内部脚本
 
-| 命令 | 用途 |
-|------|------|
-| `bash .codex/commands/ilink-init <story>` | 创建 Story |
-| `bash .codex/commands/ilink-status [story]` | 查看状态 |
-| `bash .codex/commands/ilink-approve <story>` | 审核推进 |
+下列脚本是 AI 在执行对应 slash 命令时**内部**通过 Bash 工具调用的实现细节。使用者无需打开操作系统 shell 直接运行——使用者只在 Claude Code 对话窗口输入 `/ilink-*`。
+
+| 内部脚本 | 由哪个 slash 命令触发 |
+|---------|---------------------|
+| `.claude/commands/ilink-pull.sh` | `/ilink-pull <story>` |
+| `.claude/commands/ilink-lightme.sh` | `/ilink-lightme <story>` |
 ```
 
 ### 步骤 8：创建 iLink-doc 目录
