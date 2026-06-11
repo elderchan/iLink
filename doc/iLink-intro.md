@@ -192,7 +192,7 @@ AI QA 读设计 + 读代码 → 输出审查报告（QA 不知道 Coder 的想�
 
 **Soul Plug（项目级角色规则补充）**：框架自带 soul 是通用规则，项目可在 `iLink/souls/plugs/` 下写项目级补充（如"金额必须 BigDecimal"），AI 自动加载，framework 升级不动 plug。
 
-**`/ilink-lightme`（设计/需求拷问员）**：目标文档（design 或 pm）完成后、下游角色消费之前的可选拷问命令。支持 Design 模式（默认，四平台均已实现）和 PM 模式（`-target pm`，四平台均已实现）。建议在全新会话中运行以增强隔离效果（同会话也可执行），以对抗人格照亮盲区，输出三态盲区清单（RESOLVED / TO-FIX / ACCEPTED-RISK）。不下"通过/不通过"结论。
+**`/ilink-lightme`（设计/需求拷问员）**：目标文档（design 或 pm）完成后、下游角色消费之前的**可选、主流程外**独立拷问命令。支持 Design 模式（默认，四平台均已实现）和 PM 模式（`-target pm`，四平台均已实现）。建议在全新会话中运行以增强隔离效果（同会话也可执行），以对抗人格照亮盲区，输出三态盲区清单（RESOLVED / TO-FIX / ACCEPTED-RISK），TO-FIX 项附 copy-ready 修订建议代码块由使用者自行粘贴。lightme **不动**任何 master doc / project-context / domain，不下"通过/不通过"结论。
 
 ---
 

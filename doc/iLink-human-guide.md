@@ -1124,39 +1124,46 @@ AI 会自动加载目标文档（Design 模式：design.master.md + project-cont
 `iLink-doc/kcia-1520/kcia-1520-lightme-design.md`（Design 模式）或 `kcia-1520-lightme-pm.md`（PM 模式），记录：
 - 拷问过程（逐轮）
 - 被照亮的盲区与处置（三态）：
-  - **RESOLVED**：拷问中澄清，设计已能覆盖或已就地更新文档
-  - **TO-FIX**：暴露设计/需求缺陷，需回目标文档修改后再推进下游
+  - **RESOLVED**：拷问中澄清，目标文档现有内容已能覆盖
+  - **TO-FIX**：暴露设计/需求缺陷，需修订目标文档后再推进下游。**每个 TO-FIX 项 MUST 附 copy-ready 修订建议代码块**（明示目标位置 + 可粘贴的精确文本），你直接复制粘贴到 pm.master.md 或 design.master.md 即可
   - **ACCEPTED-RISK**：你主动判断可接受、本次跳过——**必须写明你接受的理由**（审计关键留痕）
-- 本次已更新的文档（经你 Human-Gate 确认）（**仅 Design 模式**）
-- 建议补充 domain 清单（**仅 Design 模式**）
 - 给你的提示
 
-**lightme 不下"通过 / 不通过"结论**——那是你在 approve 时的事。lightme 只产盲区清单 + 处置记录。
+**lightme 不下"通过 / 不通过"结论**——那是你在 approve 时的事。lightme 只产盲区清单 + 处置记录 + copy-ready 修订建议。
 
-### 13.5 lightme 拷问中写文档的边界（仅 Design 模式）
+### 13.5 lightme 写入边界：唯一产出是报告本身
 
-PM 模式不写入项目文档——PM 拷问的发现修正的是 pm.master.md 本身。以下仅适用于 Design 模式。
+lightme 的**唯一产出**就是上面的 lightme 报告（`<story>-lightme-design.md` 或 `<story>-lightme-pm.md`）。除此之外：
 
-lightme 可能就地更新两类项目文档（每次写前都会问你确认）：
-- ✅ 可写 `project-context.md`（自动跳过 Issue System 隔离块）
-- ✅ 可写**已存在的** `<模块>-domain-knowledge.md`
-- ❌ **绝不创建**不存在的 domain-knowledge.md（那是 `/ilink-domain` 的专属产物）
+- ❌ **不写**任何 master doc（pm / design / code / review.master.md）
+- ❌ **不写** `project-context.md`
+- ❌ **不写** `<模块>-domain-knowledge.md`
+- ❌ **不改**任何文件的 Status
+- ❌ **不调** `/ilink-refine` / `/ilink-pm` / `/ilink-design` 等命令
 
-模块没有 domain 文件？lightme 会写进报告"建议补充 domain"区块，建议你后续手动跑 `/ilink-domain <模块>`。
+**为什么这样设计**：iLink 的使用者是普通开发者，让 AI 替你改 master doc 会引入"目标文档现在状态是否允许改 / 由谁决定 / 改完要不要重算 SHA1"等复杂分支。把"改"的权力还回给你（你熟悉 Ctrl+C / Ctrl+V），lightme 只负责"出报告 + 给可粘贴片段"。
+
+**对所有目标文档状态一视同仁**：不管目标文档处于 STAGING、PENDING_DESIGNER、PENDING_CODER，甚至已被下游消费或已 COMPLETED，lightme 行为完全一致——都是只生成报告。
+
+模块没有 domain 文件？报告会在顶部标"知情来源：无 domain 参考"，**不询问、不阻断**。是否要补 domain 由你看完报告后自行决定是否跑 `/ilink-domain <模块>`。
 
 ### 13.6 拷问完了下一步走哪条命令？
+
+通用动作：**先把报告里的 copy-ready 代码块粘贴到目标文件**（如果有 TO-FIX 的话），再推进下游。
 
 **Design 模式**：
 
 - 盲区全是 RESOLVED → 直接 `/ilink-approve`
-- 有 TO-FIX → 先回 design 修：用 `/ilink-refine`（轻改）或重跑 `/ilink-design`（大改），再 `/ilink-approve`
+- 有 TO-FIX → 复制报告里的 copy-ready 代码块，粘贴到 `design.master.md` 对应章节，再 `/ilink-approve`
 - 全是 ACCEPTED-RISK → 已留痕，`/ilink-approve` 即代表接受这些已知风险
 
 **PM 模式**：
 
 - 盲区全是 RESOLVED → 进入 `/ilink-design`（若 pm 为 STAGING 则先 `/ilink-approve` 推到 PENDING_DESIGNER）
-- 有 TO-FIX → 若 pm 为 STAGING 可用 `/ilink-refine`（轻改）；若为 PENDING_DESIGNER 则只能手动编辑 pm.master.md（后重算 SHA1）或重跑 `/ilink-pm` 全文重生成
+- 有 TO-FIX → 复制报告里的 copy-ready 代码块，粘贴到 `pm.master.md` 对应章节，再推进
 - 全是 ACCEPTED-RISK → 已留痕，进入 `/ilink-design` 即代表接受这些已知风险
+
+> **粘贴 TO-FIX 后是否需要重算 master doc 的 Metadata 印章**：你粘贴修订到 pm.master.md / design.master.md 后，文档内容变了，SHOULD 按 Root Spec §5.4 重算被修改文档自己的 Upstream_SHA1（它锚定的是它的上游文档，不是 lightme 报告）。lightme 报告本身不重写，记录的是"拷问时刻"的状态。
 
 > **记得 `git commit`**：`<story>-lightme-design.md` 或 `<story>-lightme-pm.md` MUST 纳入版本控制（与 `feedback.md`、`pm.master.md` 等其它 Story 文档一起），是审计追溯的关键留痕。Story 完成提交时：`git add iLink-doc/<story>/`。
 

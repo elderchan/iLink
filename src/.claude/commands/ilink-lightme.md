@@ -17,6 +17,14 @@
 - `/ilink-lightme -target pm kcia-1520` → PM 模式
 - `/ilink-lightme -target design kcia-1520` → Design 模式（显式）
 
+### 参数解析（MUST 先做）
+
+收到 `$ARGUMENTS` 后，**首先解析出**：
+- `$TARGET`：`design`（默认）或 `pm`（出现 `-target pm` 时）
+- `$STORY`：剥离 `-target pm|design` 后剩下的 story-id（如 `kcia-1520`）
+
+后续所有路径模板 **MUST 用 `$STORY`**（已解析出的 story-id 字符串），**SHALL NOT** 直接把 `$ARGUMENTS` 拼进路径——否则在 `-target pm <story>` 形式下会得到错误路径（如 `iLink-doc/-target pm kcia-1520/...`）。
+
 ### 必填校验
 
 如果 `$ARGUMENTS` 中无法提取出 story-id，**MUST 拒绝执行**，向用户输出：
@@ -114,8 +122,8 @@ lightme 的**唯一产出**是 lightme 报告。除此之外：
 
 ## 输出
 
-- Design 模式：`iLink-doc/$ARGUMENTS/$ARGUMENTS-lightme-design.md`，按 Root Spec §4.8.6 标准结构
-- PM 模式：`iLink-doc/$ARGUMENTS/$ARGUMENTS-lightme-pm.md`，结构相同
+- Design 模式：`iLink-doc/$STORY/$STORY-lightme-design.md`，按 Root Spec §4.8.6 标准结构
+- PM 模式：`iLink-doc/$STORY/$STORY-lightme-pm.md`，结构相同
 
 ## Metadata 印章
 
@@ -144,7 +152,7 @@ Status: ADVISORY
 - **TO-FIX 盲区** → 提示使用者将报告中对应的 copy-ready 代码块粘贴到目标文件后再推进下游
 - **ACCEPTED-RISK 盲区** → 已留痕；Design 模式 `/ilink-approve` 即代表接受，PM 模式进入 `/ilink-design` 即代表接受
 - **SHALL NOT 下"通过 / 不通过"结论**——结论永远由使用者在后续决策时下
-- 提醒使用者：lightme 报告 MUST 纳入版本控制（与其它 Story 文档一起 `git add iLink-doc/$ARGUMENTS/`），是审计追溯的关键留痕
+- 提醒使用者：lightme 报告 MUST 纳入版本控制（与其它 Story 文档一起 `git add iLink-doc/$STORY/`），是审计追溯的关键留痕
 
 ## 硬约束（防走过场）
 

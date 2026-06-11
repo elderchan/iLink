@@ -946,13 +946,6 @@ Plug 文件：
 | Design（默认） | `/ilink-lightme <story>` | `<story>-design.master.md` | `<story>-lightme-design.md` |
 | PM | `/ilink-lightme -target pm <story>` | `<story>-pm.master.md` | `<story>-lightme-pm.md` |
 
-**两种模式**：
-
-| 模式 | 触发命令 | 拷问对象 | 输出文件 | 文档写入 |
-|------|---------|---------|---------|---------|
-| Design（默认） | `/ilink-lightme <story>` | design.master.md | `<story>-lightme-design.md` | ✅ project-context + domain |
-| PM | `/ilink-lightme -target pm <story>` | pm.master.md | `<story>-lightme-pm.md` | ❌ 不写入项目文档 |
-
 > **平台实现进度**：`-target pm` 已在 Codex / Claude / Qoder / Gemini 四平台全部实现。详见 §4.8.9。
 
 ### 4.8.2 与主流程的唯一交互

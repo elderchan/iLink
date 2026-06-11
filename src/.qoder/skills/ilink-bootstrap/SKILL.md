@@ -18,7 +18,7 @@
 - `iLink/souls/qa.soul.md`
 - `iLink/souls/domain.soul.md`（认知模式角色规范）
 - `iLink/souls/coach.soul.md`（协作认知角色规范，v1.6.0+）
-- `iLink/souls/lightme.soul.md`（可选拷问命令，v1.8.0+）
+- `iLink/souls/lightme.soul.md`（可选设计/需求拷问命令，v1.8.0+）
 
 如果以上文件全部缺失，停止执行，提示用户先复制 iLink 框架。
 
@@ -35,7 +35,7 @@
 - `ilink-status`
 - `ilink-domain`（认知模式入口）
 - `ilink-pull`（Issue System 拉取）
-- `ilink-lightme`（可选拷问命令，v1.8.0+）
+- `ilink-lightme`（可选设计/需求拷问命令，v1.8.0+）
 - `ilink-bootstrap`
 
 缺失时给出警告（不阻塞，因为可能使用其他平台）。
