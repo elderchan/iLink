@@ -1086,13 +1086,13 @@ iLink 框架升级会同步更新 `iLink/souls/*.soul.md`，但 `iLink/souls/plu
 
 ---
 
-## 13. `/ilink-lightme` — 设计拷问员（可选，v1.8.0+）
+## 13. `/ilink-lightme` — 设计/需求拷问员（可选，v1.8.0+）
 
 ### 13.1 解决的问题
 
 在同一个 CLI 会话里，AI 刚产出 design，紧接着让它审视自己的 design——它会**护短**：因为这是它自己刚生成的，存在"承诺一致性"倾向，倾向证明自己对，而非真正挑刺。同一模型既做设计又给自己打分，是一个回音室。
 
-`/ilink-lightme` 让你在 design 完成后、approve 之前，由**独立视角**拷问这份设计，照亮你可能没看到的盲区。
+`/ilink-lightme` 让你在目标文档（design 或 pm）完成后、下游角色消费之前，由**独立视角**拷问这份文档，照亮你可能没看到的盲区。
 
 ### 13.2 何时用 / 何时跳过
 
@@ -1104,33 +1104,38 @@ iLink 框架升级会同步更新 `iLink/souls/*.soul.md`，但 `iLink/souls/plu
 | 纯 UI 改动、文案修改 | ❌ 跳过 |
 | 独立小功能、修复明显 bug | ❌ 跳过 |
 
-### 13.3 操作流程（v1.8.0 首发，四平台均已支持）
+### 13.3 操作流程（v1.8.0 首发）
 
-**第一步**：**打开一个全新的 Host CLI 会话**（不是接着 design 那个——同会话会护短，详见 §13.7）。Claude Code / Codex / Qoder / Gemini 任一平台均可。
+> **平台支持**：Design 模式和 PM 模式（`-target pm`）四平台均已实现。
+
+**第一步**：**建议在全新的 Host CLI 会话中运行**（全新会话隔离效果更好，详见 §13.7），但同会话也允许执行。Design 模式和 PM 模式均可使用 Claude Code / Codex / Qoder / Gemini 任一平台。
 
 **第二步**：在对应 CLI 的对话窗口输入：
 
 ```
-/ilink-lightme kcia-1520
+/ilink-lightme kcia-1520              # Design 模式（默认）
+/ilink-lightme -target pm kcia-1520   # PM 模式
 ```
 
-AI 会自动加载 design.master.md、project-context.md、相关 domain 知识，校验 design 存在并算出 Upstream_SHA1（内部调用对应平台的预检脚本——`.codex/commands/ilink-lightme`、`.claude/commands/ilink-lightme.sh`、`.qoder/commands/ilink-lightme` 或 `.gemini/commands/ilink-lightme.sh`，使用者不需要单独跑），然后以对抗（协作）人格拷问设计——每次问一个问题、给一个推荐答案。你逐条回答，AI 追问到底再换方向。
+AI 会自动加载目标文档（Design 模式：design.master.md + project-context.md + 相关 domain 知识；PM 模式：pm.master.md + requirement.md），校验目标文档存在并算出 Upstream_SHA1（内部调用对应平台的预检脚本——`.codex/commands/ilink-lightme`、`.claude/commands/ilink-lightme.sh`、`.qoder/commands/ilink-lightme` 或 `.gemini/commands/ilink-lightme.sh`，使用者不需要单独跑），然后以对抗（协作）人格拷问目标文档——每次问一个问题、给一个推荐答案。你逐条回答，AI 追问到底再换方向。
 
 ### 13.4 拷问结束后，AI 生成什么
 
-`iLink-doc/kcia-1520/kcia-1520-lightme.md`，记录：
+`iLink-doc/kcia-1520/kcia-1520-lightme-design.md`（Design 模式）或 `kcia-1520-lightme-pm.md`（PM 模式），记录：
 - 拷问过程（逐轮）
 - 被照亮的盲区与处置（三态）：
   - **RESOLVED**：拷问中澄清，设计已能覆盖或已就地更新文档
-  - **TO-FIX**：暴露设计缺陷，需回 design 修改后再 approve
+  - **TO-FIX**：暴露设计/需求缺陷，需回目标文档修改后再推进下游
   - **ACCEPTED-RISK**：你主动判断可接受、本次跳过——**必须写明你接受的理由**（审计关键留痕）
-- 本次已更新的文档（经你 Human-Gate 确认）
-- 建议补充 domain 清单
+- 本次已更新的文档（经你 Human-Gate 确认）（**仅 Design 模式**）
+- 建议补充 domain 清单（**仅 Design 模式**）
 - 给你的提示
 
 **lightme 不下"通过 / 不通过"结论**——那是你在 approve 时的事。lightme 只产盲区清单 + 处置记录。
 
-### 13.5 lightme 拷问中写文档的边界
+### 13.5 lightme 拷问中写文档的边界（仅 Design 模式）
+
+PM 模式不写入项目文档——PM 拷问的发现修正的是 pm.master.md 本身。以下仅适用于 Design 模式。
 
 lightme 可能就地更新两类项目文档（每次写前都会问你确认）：
 - ✅ 可写 `project-context.md`（自动跳过 Issue System 隔离块）
@@ -1141,17 +1146,27 @@ lightme 可能就地更新两类项目文档（每次写前都会问你确认）
 
 ### 13.6 拷问完了下一步走哪条命令？
 
+**Design 模式**：
+
 - 盲区全是 RESOLVED → 直接 `/ilink-approve`
 - 有 TO-FIX → 先回 design 修：用 `/ilink-refine`（轻改）或重跑 `/ilink-design`（大改），再 `/ilink-approve`
-- 全是 ACCEPTED-RISK → 你已留痕，直接 `/ilink-approve` 即代表接受这些已知风险
+- 全是 ACCEPTED-RISK → 已留痕，`/ilink-approve` 即代表接受这些已知风险
 
-> **记得 `git commit`**：`<story>-lightme.md` MUST 纳入版本控制（与 `feedback.md`、`pm.master.md` 等其它 Story 文档一起），是审计追溯的关键留痕。Story 完成提交时：`git add iLink-doc/<story>/`。
+**PM 模式**：
 
-### 13.7 诚实的能力边界
+- 盲区全是 RESOLVED → 进入 `/ilink-design`（若 pm 为 STAGING 则先 `/ilink-approve` 推到 PENDING_DESIGNER）
+- 有 TO-FIX → 若 pm 为 STAGING 可用 `/ilink-refine`（轻改）；若为 PENDING_DESIGNER 则只能手动编辑 pm.master.md（后重算 SHA1）或重跑 `/ilink-pm` 全文重生成
+- 全是 ACCEPTED-RISK → 已留痕，进入 `/ilink-design` 即代表接受这些已知风险
 
-lightme 与生成 design 的是**同一个底层模型**。新会话能切断"记忆层面"的护短，但**切不断模型自身的盲区**——底层模型写 design 时没想到的结构性盲点，新会话大概率仍想不到。
+> **记得 `git commit`**：`<story>-lightme-design.md` 或 `<story>-lightme-pm.md` MUST 纳入版本控制（与 `feedback.md`、`pm.master.md` 等其它 Story 文档一起），是审计追溯的关键留痕。Story 完成提交时：`git add iLink-doc/<story>/`。
 
-lightme 提供约 **70% 的隔离效果**，剩余盲区靠你的领域经验补足。
+### 13.7 新会话 vs 同会话：隔离效果的取舍
+
+**建议新会话**：全新会话上下文为空，AI 不知道目标文档是"自己"刚写的，更有利于对抗护短倾向。但需要重新读取 soul、project-context、目标文档和相关代码，可能消耗更多 token。
+
+**同会话也允许**：更方便、更省 token，但隔离效果下降——AI 对刚生成的文档存在"承诺一致性"倾向。
+
+无论哪种方式，lightme 与生成目标文档的是**同一个底层模型**，**切不断模型自身的盲区**——底层模型写文档时没想到的结构性盲点，新会话大概率仍想不到。lightme 提供辅助审视，剩余盲区靠你的领域经验补足。
 
 ### 13.8 行业特化（如金融术语、合规要求）
 
@@ -1159,14 +1174,14 @@ lightme 提供约 **70% 的隔离效果**，剩余盲区靠你的领域经验补
 
 ### 13.9 跨平台跟进现状（v1.8.0 首发）
 
-| 平台 | lightme 支持状态 |
-|------|------------------|
-| Codex CLI | ✅ v1.8.0 首发 |
-| Claude CLI | ✅ v1.8.0 首发（commands/ilink-lightme.md + .sh） |
-| Qoder CLI | ✅ v1.8.0 首发（skills/ilink-lightme/SKILL.md + commands/ilink-lightme） |
-| Gemini CLI | ✅ v1.8.0 首发（commands/ilink-lightme.toml + .sh） |
+| 平台 | Design 模式 | PM 模式 (`-target pm`) |
+|------|-------------|------------------------|
+| Codex CLI | ✅ v1.8.0 首发 | ✅ v1.8.0 首发 |
+| Claude CLI | ✅ v1.8.0 首发（commands/ilink-lightme.md + .sh） | ✅ v1.8.0 首发 |
+| Qoder CLI | ✅ v1.8.0 首发（skills/ilink-lightme/SKILL.md + commands/ilink-lightme） | ✅ v1.8.0 首发 |
+| Gemini CLI | ✅ v1.8.0 首发（commands/ilink-lightme.toml + .sh） | ✅ v1.8.0 首发 |
 
-四平台均已支持，lightme 报告本身平台中立，跨平台可共享。
+Design 模式和 PM 模式四平台均已实现。lightme 报告本身平台中立，跨平台可共享。
 
 ---
 
@@ -1197,7 +1212,7 @@ lightme 提供约 **70% 的隔离效果**，剩余盲区靠你的领域经验补
 | 命令 | 用途 | 谁执行 |
 |------|------|-------|
 | `/ilink-refine <story>` | 修订 STAGING 文档（逐条确认阻塞项） | AI + 人类 |
-| `/ilink-lightme <story>` | Lightme：可选设计拷问（v1.8.0+，必须在全新 Host CLI 会话执行） | AI |
+| `/ilink-lightme [-target pm\|design] <story>` | Lightme：可选设计/需求拷问（v1.8.0+，建议全新 Host CLI 会话，非强制） | AI |
 | `/ilink-status [story]` | 查看流水线状态与下一步建议 | AI |
 | `/ilink-bootstrap` | 项目冷启动（生成项目知识库） | AI |
 
@@ -1224,7 +1239,7 @@ lightme 提供约 **70% 的隔离效果**，剩余盲区靠你的领域经验补
 │       ├── qa.soul.md
 │       ├── domain.soul.md              ← 认知模式：Domain Engineer
 │       ├── coach.soul.md               ← 协作复盘（v1.6.0）
-│       ├── lightme.soul.md             ← 设计拷问员（v1.8.0）
+│       ├── lightme.soul.md             ← 设计/需求拷问员（v1.8.0）
 │       └── plugs/                       ← 项目级角色规则补充（v1.8.0）
 │           ├── pm.project.plug.md
 │           ├── design.project.plug.md

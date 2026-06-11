@@ -7,7 +7,7 @@
 > **iLink — 一为 AI 立法**
 
 <div align="center">
-  <img src="ilink-opt2.png" alt="iLink 设计理念全景" width="61.8%">
+  <img src="ilink-opt3.png" alt="iLink 设计理念全景" width="61.8%">
 </div>
 
 iLink 用 **Root Spec**（AI Agent 的宪法）+ **Soul 文件**（角色岗位说明书）+ **Master Doc**（交付契约），将单一 AI 拆分为多个职责清晰的角色，通过文件状态机驱动端到端协作。三条工作线并行：**交付线**让 AI 像专业团队一样完成需求；**认知线**让 AI 帮团队沉淀领域知识；**协作复盘线**（v1.6.0）让 AI 帮团队反思协作姿势。
@@ -226,7 +226,7 @@ Command 文件（平台实现，"操作手册"）
 
 | 角色 | 职责 | 输入 | 输出 |
 |------|------|------|------|
-| **Lightme** | 在全新会话中以对抗人格拷问设计，照亮盲区；就地沉淀术语/决策到项目文档 | design.master.md + project-context.md + domain | lightme.md（三态盲区清单） |
+| **Lightme** | 以对抗人格拷问目标文档（design 或 pm），照亮盲区（建议全新会话，同会话也可）；Design 模式就地沉淀术语/决策到项目文档 | Design 模式：design.master.md + project-context.md + domain；PM 模式：pm.master.md + requirement.md | lightme-design.md 或 lightme-pm.md（三态盲区清单） |
 
 每个角色的行为由对应的 Soul 文件（`iLink/souls/*.soul.md`）定义，所有角色共享 `universal.soul.md` 中的通用行为准则。
 
@@ -263,7 +263,7 @@ Command 文件（平台实现，"操作手册"）
 │       ├── qa.soul.md
 │       ├── domain.soul.md              ← Domain Engineer（认知模式）
 │       ├── coach.soul.md               ← Coach 协作复盘（v1.6.0）
-│       ├── lightme.soul.md             ← Lightme 设计拷问员（v1.8.0）
+│       ├── lightme.soul.md             ← Lightme 设计/需求拷问员（v1.8.0）
 │       └── plugs/                       ← 项目级角色规则补充（v1.8.0）
 │           ├── pm.project.plug.md
 │           ├── design.project.plug.md
@@ -312,7 +312,7 @@ Command 文件（平台实现，"操作手册"）
 | `/ilink-pull <story>` | 从 Issue 系统拉取需求"描述"字段写入 requirement.md（v1.7.0 新增） | init 后可选 |
 | `/ilink-pm <story>` | AI 需求分析 | 每个 Story |
 | `/ilink-design <story>` | AI 技术设计 | 每个 Story |
-| `/ilink-lightme <story>` | Lightme：可选设计拷问员（v1.8.0+，全新会话执行） | design 后、approve 前 |
+| `/ilink-lightme [-target pm\|design] <story>` | Lightme：可选设计/需求拷问（v1.8.0+，建议全新会话，非强制） | design 后 / pm 后 |
 | `/ilink-approve <story>` | 人类审核推进 + Coach 协作复盘（v1.6.0） | 审核通过后 |
 | `/ilink-coder <story>` | AI 编码 | 设计通过后 |
 | `/ilink-refine <story>` | 人类逐条确认 `[待确认]` 项 | STAGING 时 |
@@ -410,7 +410,7 @@ iLink 可以与上述方案共存，为其提供补充能力：
 本版本聚焦"项目级定制与设计拷问"，引入两件独立功能（互无依赖，可分别使用）：
 
 - **Soul 三层体系（项目级 Plug）**：在 framework soul 之外引入项目级 `<role>.project.plug.md` 补充层。AI 加载角色时同时持有 framework soul + 项目 plug，**加法语义**（两份均视为约束，框架不主动检测冲突也不仲裁优先级）。框架升级时 plug 不动，项目定制不受影响。bootstrap 自动创建 6 个角色（pm / design / coder / qa / domain / lightme）的空模板；universal plug 由项目按需自建。详见 Root Spec §4.7、Implementation Guide §1.5、Human Guide §12
-- **`/ilink-lightme` 设计拷问员**：design 完成、approve 之前的**可选**独立拷问命令。在全新 Host CLI 会话中运行（隔离护短），以对抗（协作）人格拷问设计，照亮盲区；按 Human-Gate 就地沉淀澄清的术语/决策到 `project-context.md` 和已存在的 `domain-knowledge.md`（绝不创建 domain 文件）；输出审计报告 `<story>-lightme.md`，含 Upstream_SHA1 锚定 design 版本，三态处置（RESOLVED / TO-FIX / ACCEPTED-RISK），SHALL NOT 下"通过/不通过"结论。通用拷问内核，行业特化走 `lightme.project.plug.md`。详见 Root Spec §4.8、`lightme.soul.md`、Human Guide §13
+- **`/ilink-lightme` 设计/需求拷问员**：目标文档完成后、下游角色消费之前的**可选**独立拷问命令。支持两种模式：Design 模式（默认，拷问 design.master.md，四平台均已实现）和 PM 模式（`-target pm`，拷问 pm.master.md，四平台均已实现）。建议在全新 Host CLI 会话中运行以增强隔离效果（非强制，同会话也可执行），以对抗（协作）人格拷问设计/需求，照亮盲区；Design 模式按 Human-Gate 就地沉淀澄清的术语/决策到 `project-context.md` 和已存在的 `domain-knowledge.md`（绝不创建 domain 文件），PM 模式不写入项目文档；输出审计报告 `<story>-lightme-design.md` 或 `<story>-lightme-pm.md`，含 Upstream_SHA1 锚定目标文档版本，三态处置（RESOLVED / TO-FIX / ACCEPTED-RISK），SHALL NOT 下"通过/不通过"结论。通用拷问内核，行业特化走 `lightme.project.plug.md`。详见 Root Spec §4.8、`lightme.soul.md`、Human Guide §13
 - **角色内化品质（§0）**：每个 Soul 文件新增 `§0. 内化品质` 元原则节，定义该角色在执行规则时应持有的思维纪律（如 PM 主动补全遗漏、Designer 防御性思维、Coder 对称性检查、QA 诚实暴露质量问题）。包含"反表演型完整"约束——每个角色明确标注不应为了显得专业/周全/尽责而过度执行。§0 为元原则层，后续 §1-§N 为其具体落地；遇到规则未覆盖的情况时以 §0 为判定依据
 
 > **跨平台跟进现状**：v1.8.0 **Codex / Qoder / Claude / Gemini CLI 四平台均已首发**完整实现（bootstrap、命令、脚本全套）。

@@ -18,7 +18,7 @@
 - `iLink/souls/qa.soul.md`
 - `iLink/souls/domain.soul.md`（认知模式角色规范）
 - `iLink/souls/coach.soul.md`（协作认知角色规范，v1.6.0+）
-- `iLink/souls/lightme.soul.md`（设计拷问员角色规范，v1.8.0+，启用 `/ilink-lightme` 时 MUST）
+- `iLink/souls/lightme.soul.md`（设计/需求拷问员角色规范，v1.8.0+，启用 `/ilink-lightme` 时 MUST）
 
 如果以上文件全部缺失，停止执行，提示用户先复制 iLink 框架。
 
@@ -36,8 +36,8 @@
 - `ilink-domain.md`（认知模式入口）
 - `ilink-pull.md`（Issue System 拉取入口 AI 薄壳）
 - `ilink-pull.sh`（Issue System 拉取 bash 脚本本体；由 ilink-pull.md 调用）
-- `ilink-lightme.md`（设计拷问员入口 AI 薄壳，v1.8.0+）
-- `ilink-lightme.sh`（设计拷问员 bash 预检脚本，v1.8.0+；由 ilink-lightme.md 调用）
+- `ilink-lightme.md`（设计/需求拷问员入口 AI 薄壳，v1.8.0+）
+- `ilink-lightme.sh`（设计/需求拷问员 bash 预检脚本，v1.8.0+；由 ilink-lightme.md 调用）
 
 缺失时给出警告（不阻塞，因为可能使用其他平台）。`ilink-pull.sh` 缺失时除 warn 外还要提示用户：缺该脚本则 `/ilink-pull` 不可用，但其他流水线命令不受影响。`ilink-lightme.*` 缺失时同样 warn 并提示：缺则 `/ilink-lightme` 不可用，但其他流水线命令不受影响。
 
@@ -264,7 +264,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 /ilink-init <story>     → 创建 Story 目录和需求模板
 /ilink-pm <story>       → PM：需求分析 → 业务合同
 /ilink-design <story>   → Designer：技术设计 → 文件级任务清单
-/ilink-lightme <story>  → Lightme：设计拷问员（可选，v1.8.0+；MUST 在全新会话执行）
+/ilink-lightme <story>  → Lightme：设计/需求拷问员（可选，v1.8.0+；建议全新会话，非强制）
 /ilink-approve <story>  → Human-Gate：审核推进 + Coach 协作复盘
 /ilink-coder <story>    → Coder：按设计编码 → 直接写入磁盘
 /ilink-qa <story>       → QA：代码审查 → 审查报告
@@ -331,7 +331,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 1. 读取 `project-context.md` 了解项目
 2. 创建 Story：执行 `/ilink-init <story-id> <usage-value>`
 3. 按流水线执行：`/ilink-pm` → `/ilink-design` → `/ilink-approve` → `/ilink-coder` → `/ilink-qa <story> <usage-value>`
-4. 可选：在 `/ilink-design` 之后、`/ilink-approve` 之前，于**全新 Claude Code 会话**输入 `/ilink-lightme <story>` 触发设计拷问员（v1.8.0+）
+4. 可选：在 `/ilink-design` 之后、`/ilink-approve` 之前，输入 `/ilink-lightme <story>` 触发设计/需求拷问员（v1.8.0+；建议全新 Claude Code 会话以提升隔离效果，但会更耗 token）
 
 ### 角色触发
 

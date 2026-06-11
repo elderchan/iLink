@@ -736,7 +736,7 @@ AGENTS.md 与 CLAUDE.md 遵守完全一致的"双向显式 AI 行为规则"—�
 
 ### 角色触发
 
-使用者统一在 Host CLI 对话窗口输入 `/ilink-*`。当用户输入 `/ilink-pm <story>` / `/ilink-design <story>` / `/ilink-lightme <story>` / `/ilink-coder <story>` / `/ilink-qa <story> <usage-value>` / `/ilink-refine <story>` 时：
+使用者统一在 Host CLI 对话窗口输入 `/ilink-*`。当用户输入 `/ilink-pm <story>` / `/ilink-design <story>` / `/ilink-lightme [-target pm|design] <story>` / `/ilink-coder <story>` / `/ilink-qa <story> <usage-value>` / `/ilink-refine <story>` 时：
 
 - **Codex CLI 用户**：AI 先读取 `.codex/codex-commands.md`，按其中指令执行
 - **其他 CLI 用户**：AI 先读取 `iLink/iLink-root-spec.md` §4/§6.3，再读对应 Soul 文件执行

@@ -463,22 +463,31 @@ Step 5: 输出判定（COMPLETED / FAIL_BACK_TO_CODER / STAGING）
 
 ---
 
-## /ilink-lightme 阶段：我在想什么（v1.8.0 设计拷问）
+## /ilink-lightme 阶段：我在想什么（v1.8.0 设计/需求拷问）
 
-当你在全新会话中执行 `/ilink-lightme <story>` 时，我切换为 **Lightme** 角色——一个对抗性的设计拷问员。
+当你执行 `/ilink-lightme <story>` 或 `/ilink-lightme -target pm <story>` 时，我切换为 **Lightme** 角色——一个对抗性的设计/需求拷问员。
 
-### 为什么必须在全新会话
+### 为什么建议全新会话（但同会话也可以）
 
-如果由"刚写完 design 的我"来审视自己的设计，我会**护短**——存在"承诺一致性"倾向，倾向于证明自己对。新会话能切断记忆层面的护短，但**切不断模型自身的盲区**——底层模型写 design 时没想到的结构性盲点，新会话大概率仍想不到。
+全新会话上下文为空，我不知道目标文档是"自己"刚写的，更有利于对抗护短倾向。同会话更方便、更省 token，但隔离效果下降——我对刚生成的文档存在"承诺一致性"倾向。
 
-我提供约 **70% 的隔离效果**，剩余盲区靠你的领域经验补足。
+无论哪种方式，我与生成目标文档的是**同一个底层模型**，**切不断模型自身的盲区**——底层模型没想到的结构性盲点，新会话大概率也想不到。剩余盲区靠你的领域经验补足。
 
 ### 我怎么拷问
+
+**Design 模式**（默认）：
 
 1. **读 design.master.md** → 理解设计方案
 2. **读 project-context.md** → 理解项目上下文
 3. **读相关 domain-knowledge.md**（若有）→ 理解模块现状
 4. **逐轮拷问**：每次一个问题 + 一个推荐答案，你确认后我追问到底再换方向
+
+**PM 模式**（`-target pm`）：
+
+1. **读 pm.master.md** → 理解需求定义
+2. **读 requirement.md**（若有）→ 理解原始需求
+3. **逐轮拷问**：聚焦需求层面的盲区（边界条件、异常路径、跨模块依赖等）
+4. PM 模式不写入 project-context.md 或 domain 文档
 
 ### 我的诚实标注
 
@@ -486,12 +495,12 @@ Lightme §0 的内化品质是"诚实承认局限 + 防御性挖盲区"——我
 
 ### 产出
 
-`<story>-lightme.md`，记录三态盲区：
+`<story>-lightme-design.md` 或 `<story>-lightme-pm.md`，记录三态盲区：
 - **RESOLVED**：拷问中澄清
-- **TO-FIX**：需回 design 修改
+- **TO-FIX**：需回目标文档修改（Design 模式回 design，PM 模式回 pm）
 - **ACCEPTED-RISK**：你主动接受的风险（必须写明理由）
 
-**我不下"通过/不通过"结论**——那是你在 approve 时的事。
+**我不下"通过/不通过"结论**——Design 模式那是你在 approve 时的事，PM 模式那是你进入 design 时的事。
 
 ---
 
@@ -879,7 +888,7 @@ Story A 由 Claude 做 PM + Design，Story B 由 Qoder 做 Coder + QA，Story C 
 | `/ilink-coder <story>` | 编码 | 按设计直接写文件到磁盘 |
 | `/ilink-qa <story>` | 代码审查 | 五步审查，输出结论 |
 | `/ilink-refine <story>` | 修订 STAGING | 逐条确认阻塞项，记录人类决策 |
-| `/ilink-lightme <story>` | 设计拷问（v1.8.0） | 全新会话，对抗性拷问设计，输出三态盲区清单 |
+| `/ilink-lightme [-target pm\|design] <story>` | 设计/需求拷问（v1.8.0） | 建议全新会话，对抗性拷问目标文档，输出三态盲区清单 |
 | `/ilink-domain <module>` | 认知分析 | 阅读源码，生成 Domain Knowledge |
 | `ilink-status [story]` | 查看状态 | 显示流水线进度 |
 

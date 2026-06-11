@@ -220,7 +220,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 /ilink-init <story>     → 创建 Story 目录和需求模板
 /ilink-pm <story>       → PM：需求分析 → 业务合同
 /ilink-design <story>   → Designer：技术设计 → 文件级任务清单
-/ilink-lightme <story>  → Lightme：设计拷问员（可选，v1.8.0+；MUST 在全新会话执行）
+/ilink-lightme <story>  → Lightme：设计/需求拷问员（可选，v1.8.0+；建议全新会话，非强制）
 /ilink-approve <story>  → Human-Gate：审核推进 + Coach 协作复盘
 /ilink-coder <story>    → Coder：按设计编码 → 直接写入磁盘
 /ilink-qa <story> <usage-value> → QA：代码审查 → 审查报告（usage-value 必填）
@@ -286,7 +286,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 1. 读取 `project-context.md` 了解项目
 2. 创建 Story：输入 `/ilink-init <story-id>`
 3. 按流水线执行：`/ilink-pm` → `/ilink-design` → `/ilink-approve` → `/ilink-coder` → `/ilink-qa <story> <usage-value>`
-4. 可选：在 `/ilink-design` 之后、`/ilink-approve` 之前，于**全新 Qoder 会话**输入 `/ilink-lightme <story>` 触发设计拷问员（v1.8.0+）
+4. 可选：在 `/ilink-design` 之后、`/ilink-approve` 之前，输入 `/ilink-lightme <story>` 触发设计/需求拷问员（v1.8.0+；建议全新 Qoder 会话以提升隔离效果，但会更耗 token）
 
 ### 角色触发
 

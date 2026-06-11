@@ -17,7 +17,7 @@ prompt = """
 - `iLink/souls/qa.soul.md`
 - `iLink/souls/domain.soul.md`
 - `iLink/souls/coach.soul.md`（v1.6.0 新增）
-- `iLink/souls/lightme.soul.md`（设计拷问员角色规范，v1.8.0+，启用 `/ilink-lightme` 时 MUST）
+- `iLink/souls/lightme.soul.md`（设计/需求拷问员角色规范，v1.8.0+，启用 `/ilink-lightme` 时 MUST）
 
 如果以上文件全部缺失，停止执行，提示用户先复制 iLink 框架。
 
@@ -26,7 +26,7 @@ prompt = """
 确认 `.gemini/commands/` 下存在以下 `.toml` 文件：
 - `ilink-init.toml`, `ilink-pm.toml`, `ilink-design.toml`, `ilink-coder.toml`, `ilink-qa.toml`, `ilink-refine.toml`, `ilink-domain.toml`, `ilink-approve.toml`, `ilink-status.toml`
 - `ilink-pull.toml`（Issue System 拉取入口）+ `ilink-pull.sh`（bash 脚本本体）
-- `ilink-lightme.toml`（设计拷问员入口，v1.8.0+）+ `ilink-lightme.sh`（bash 预检脚本，v1.8.0+）
+- `ilink-lightme.toml`（设计/需求拷问员入口，v1.8.0+）+ `ilink-lightme.sh`（bash 预检脚本，v1.8.0+）
 
 > v1.6.0 起 `ilink-approve.toml` 内含 Coach 子流程逻辑（协作复盘 + Status 推进）。
 
@@ -75,13 +75,13 @@ prompt = """
 - **已是 iLink**（包含"iLink 协作协议"关键词）→ 跳过
 - **非 iLink** → 备份为 `CLAUDE.md.bak.YYYYMMDD_HHMMSS`，迁移内容到 project-context.md 后，重写为 iLink 薄路由
 
-薄路由 MUST 包含：AI 行为规则（读取/写入/`/init` 处理/本文件保护规则）、iLink 协作协议、核心文件列表、流水线命令说明。流水线命令列表 SHOULD 含 `/ilink-lightme`（设计拷问员，可选，v1.8.0+）。
+薄路由 MUST 包含：AI 行为规则（读取/写入/`/init` 处理/本文件保护规则）、iLink 协作协议、核心文件列表、流水线命令说明。流水线命令列表 SHOULD 含 `/ilink-lightme`（设计/需求拷问员，可选，v1.8.0+）。
 
 ## 步骤 7：更新 AGENTS.md
 
 处理逻辑同步骤 6，文件名为 `AGENTS.md`。
 
-薄路由 MUST 包含：AI 行为规则、iLink 协作协议、核心文件表格、快速开始步骤、角色触发说明。快速开始 SHOULD 在 design 与 approve 之间标注可选的 `/ilink-lightme` 拷问步骤（v1.8.0+，全新会话执行）。
+薄路由 MUST 包含：AI 行为规则、iLink 协作协议、核心文件表格、快速开始步骤、角色触发说明。快速开始 SHOULD 在 design 与 approve 之间标注可选的 `/ilink-lightme` 拷问步骤（v1.8.0+，建议全新会话，非强制）。
 
 ## 步骤 8：创建 iLink-doc 目录
 
@@ -113,6 +113,6 @@ prompt = """
 3. 提交 Bootstrap 产出：git add project-context.md CLAUDE.md AGENTS.md iLink-doc/
    git commit -m "iLink bootstrap: 初始化项目协作环境"
 4. 创建第一个 Story：/ilink-init <story-id> <usage-value>
-5. （可选）高风险设计时跑 `/ilink-lightme <story-id>` 拷问（v1.8.0+，全新 Gemini 会话）
+5. （可选）高风险设计时跑 `/ilink-lightme <story-id>` 拷问（v1.8.0+，建议全新 Gemini 会话以提升隔离效果，但会更耗 token）
 ```
 """

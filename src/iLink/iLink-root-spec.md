@@ -140,7 +140,7 @@ iLink 包含两条平行的工作线，共用同一套 Host CLI 基础设施：
 │           /ilink-status  /ilink-bootstrap                     │
 │   认知线：/ilink-domain                                        │
 │   外部集成：/ilink-pull（Issue System 拉取）                    │
-│   可选拷问：/ilink-lightme（design → approve 之间，advisory）   │
+│   可选拷问：/ilink-lightme（pm → design 或 design → approve 之间，advisory）│
 ├──────────────────────────────────────────────────────────────┤
 │              Bash 辅助脚本层（轻量）                            │
 │   ilink-init / ilink-status / ilink-approve / ilink-pull     │
@@ -928,142 +928,160 @@ Plug 文件：
 
 ---
 
-## 4.8 Lightme 角色规范
+## 4.8 Lightme 可选审视（advisory，主流程外）
 
-> 自 iLink v1.8.0 引入。本节定义 design → approve 之间的可选拷问机制及其契约。
-> 行为规则与 prompt 模板见 `iLink/souls/lightme.soul.md`。
+> 自 iLink v1.8.0 引入。本节定义 pm / design 完成后的可选拷问机制及其契约。
+> 拷问内核（四原则、术语拷问、追问策略、输出禁结论等行为细节）见 `iLink/souls/lightme.soul.md`。
 
-### 4.8.1 概览（使用者效果）
+### 4.8.1 定位
 
-`/ilink-lightme <story-id>` 是一个**可选**的 Slash Command，由 Leader 在 design 完成后、approve 之前手动触发。它做三件事：
+`/ilink-lightme [-target pm|design] <story-id>` 是一个**可选的、主流程外的独立审视工具**，由使用者（普通开发者）在 pm.master.md 或 design.master.md 写完后手动触发。
 
-1. **照亮盲区**：由独立视角拷问设计，照亮 Leader 可能没看到的隐藏假设、跨模块依赖、术语歧义、边界与一致性问题
-2. **就地沉淀**：拷问中澄清的术语和决策，按 Human-Gate 经 Leader 确认后写回项目文档（`project-context.md` / 已存在的 `<模块>-domain-knowledge.md`）
-3. **留痕审计**：生成 `<story-id>-lightme.md`，记录本次照亮的盲区及 Leader 的处置决定
+它由独立视角拷问目标文档，照亮使用者可能没看到的隐藏假设、跨模块依赖、术语歧义、边界与一致性问题，并产出一份审计报告。lightme 是 advisory（顾问性）的——**不改变 Status**、**不阻塞下游**、**不被任何下游角色读取**。高风险 Story 建议触发，简单 Story 可跳过。
 
-lightme 是 advisory（顾问性）：**不改变 Status**、**不阻塞 approve**。Leader 自主决定何时触发、是否参考报告做 approve 决策。高风险 Story 建议触发，简单 Story 可跳过。
+**两种模式**：
 
-### 4.8.2 在流水线中的位置（维护者实现）
+| 模式 | 触发命令 | 拷问对象 | 输出文件 |
+|---|---|---|---|
+| Design（默认） | `/ilink-lightme <story>` | `<story>-design.master.md` | `<story>-lightme-design.md` |
+| PM | `/ilink-lightme -target pm <story>` | `<story>-pm.master.md` | `<story>-lightme-pm.md` |
 
-```
-/ilink-design → STAGING → [可选 /ilink-lightme] → /ilink-approve
-```
+**两种模式**：
 
-- lightme **不改变 Status**：design.master.md 仍保持 STAGING
-- approve **不依赖** lightme：approve 既不检测 lightme 是否跑过，也不读 lightme.md
-- 与 `/ilink-refine`：互补、独立。refine 解决 STAGING 中的 `[待确认]` 项（已有决策答案，Leader 逐条确认）；lightme 挑出尚未被发现的盲区（无决策答案，需 Leader 现场判断）。二者顺序由 Leader 决定。
-- 与 **Coach**：**互不读对方产物**。Coach 仍只看 approve 所在会话的对话窗口 + design diff，**不读** lightme.md；lightme 也 SHALL NOT 读 `<story>-feedback.md`。接受 ~70% 协作样本采集盲点——lightme 在新会话执行，Coach 看不到这次拷问对话。
+| 模式 | 触发命令 | 拷问对象 | 输出文件 | 文档写入 |
+|------|---------|---------|---------|---------|
+| Design（默认） | `/ilink-lightme <story>` | design.master.md | `<story>-lightme-design.md` | ✅ project-context + domain |
+| PM | `/ilink-lightme -target pm <story>` | pm.master.md | `<story>-lightme-pm.md` | ❌ 不写入项目文档 |
 
-### 4.8.3 内核来源（维护者实现）
+> **平台实现进度**：`-target pm` 已在 Codex / Claude / Qoder / Gemini 四平台全部实现。详见 §4.8.9。
 
-lightme 的拷问内核直接采用 Matt Pocock 官方 `grill-with-docs` skill 的机制（`github.com/mattpocock/skills`，路径 `engineering/grill-with-docs`）。
+### 4.8.2 与主流程的唯一交互
 
-SHALL NOT 参照 `stevegsax/grill-me` 等第三方衍生版（289 行改写版，与原版差异较大）。
+lightme 的唯一产出是 **lightme 报告**。除此之外：
 
-iLink 在 grill-with-docs 内核之上的增量约束：
-- 三类 md 写入边界（§4.8.10）
-- lightme.md Metadata 印章（§4.8.11）
-- 大型代码库检索局限标注（§4.8.8）
-- 输出禁结论（§4.8.13）
+- **SHALL NOT** 写、改、删 `<story>-pm.master.md`、`<story>-design.master.md`、`<story>-code.master.md`、`<story>-review.master.md`
+- **SHALL NOT** 写、改、删 `project-context.md`
+- **SHALL NOT** 写、改、删 `iLink-doc/domain/<模块>-domain-knowledge.md`
+- **SHALL NOT** 改变任何 Master Doc 的 Status
+- **SHALL NOT** 调用 `/ilink-refine`、`/ilink-pm`、`/ilink-design` 等其他命令
 
-### 4.8.4 触发条件
+lightme 报告中所有 **TO-FIX** 项 **MUST** 附 copy-ready 修订建议代码块（详见 §4.8.6），由使用者自己复制粘贴到对应文件。这是 lightme 与主流程之间的**唯一**信道。
 
-仅 Leader 手动触发：`/ilink-lightme <story-id>`。AI **SHALL NOT** 自动判定何时该触发；下游角色（Coder、QA）SHALL NOT 因 lightme 是否跑过而改变行为。
+**为什么这样设计**：iLink 的使用者是普通开发者，让 AI 替使用者改 master doc 会引入"目标文档当前状态是否允许写入 / 由谁决策"等复杂二分。把"改"的权力还回给使用者（他熟悉 Ctrl+C / Ctrl+V），lightme 专心做"出报告 + 给可粘贴片段"。
 
-### 4.8.5 隔离机制（AI 执行规范）
+**与 `/ilink-refine` 的关系**：互补、独立。refine 解决 STAGING 中的 `[待确认]` 项（已有决策答案，使用者逐条确认，AI 更新文档）；lightme 挑出尚未被发现的盲区（无决策答案，使用者看完报告后自己粘贴修订）。二者顺序由使用者决定。lightme 不调用 refine，refine 不读 lightme 报告。
 
-**新会话执行**：MUST 在一个全新的 Host CLI 会话中运行，不能接在 `/ilink-design` 的同一会话后。新会话上下文为空，AI 不知道这份 design 是"自己"刚写的——对它而言这是一份外来的、待审视的文档，切断护短的承诺链。
+**与 Coach 的关系**：**互不读对方产物**。Coach 仍只看 approve 所在会话的对话窗口 + design diff，**不读** lightme 报告；lightme 也 SHALL NOT 读 `<story>-feedback.md`。
 
-**对抗（协作）人格**：在 prompt 中赋予敏锐、不留情面但平等协作的评审专家角色（详见 `lightme.soul.md`）。
+### 4.8.3 触发与会话隔离
 
-**诚实标注隔离能力**：单模型隔离切断"记忆层面"的护短，但**切不断模型自身的盲区**——同一个底层模型写 design 时没想到的结构性盲点，新会话大概率仍想不到。lightme 提供约 70% 的隔离效果，剩余盲区由 Leader 的领域经验在 approve 时补足。lightme 的产出是"给人的弹药"，**不是"替代人的审查"**。
+**触发**：仅使用者手动触发 `/ilink-lightme [-target pm|design] <story-id>`。`-target` 可选，默认 `design`。AI **SHALL NOT** 自动判定何时该触发；下游角色（Designer / Coder / QA）**SHALL NOT** 因 lightme 是否跑过而改变行为。
 
-lightme **不需要** sandbox（纯对话/推理 + 文档读写，不执行不可信代码）。
+**不限目标文档状态**：lightme 可在目标文档的任何阶段触发（STAGING / PENDING_DESIGNER / PENDING_CODER / 已被下游消费 / 已 COMPLETED 均可）。因为 lightme 不动 master doc，目标文档状态不影响 lightme 安全性，预检脚本 **SHALL NOT** 因目标文档状态而阻断或弹出确认对话——仅对"目标文档不存在"报错退出。
 
-### 4.8.6 输入（AI 执行规范）
+**会话隔离建议**：SHOULD 在全新 Host CLI 会话中运行，尤其高风险 Story。全新会话上下文为空，AI 不知道这份文档是"自己"刚写的，对它而言这是一份外来的、待审视的文档，更有利于对抗"AI 自身合理性"与护短倾向。代价是需要重新读取 soul / project-context / 目标文档，token 消耗更高。
 
-- **MUST 读**：`iLink-doc/<story-id>/<story-id>-design.master.md`
-- **MUST 读**：`project-context.md`（仅主体内容；按 §7.8 自动跳过 Issue System AI 隔离块）
-- **SHOULD 读**：`iLink-doc/domain/<相关模块>-domain-knowledge.md`（若需求或 design 涉及该模块）
-- **MAY 探索**：源代码（用 Host CLI 检索能力，遵守 §4.8.8 检索局限标注）
+同一会话运行 `/ilink-lightme` 是允许的（MAY），不阻断命令。
 
-若相关模块无 domain 文件，进入**降级模式**：lightme 提示 Leader 建议先跑 `/ilink-domain` 沉淀该模块，并询问是否继续。Leader 选择继续时，lightme 标注本次为"降级模式"。
+**诚实标注隔离能力**：单模型隔离只能缓解"记忆层面"的护短，但**切不断模型自身的盲区**——同一个底层模型写文档时没想到的结构性盲点，新会话大概率仍想不到。lightme 的产出是"给人的弹药"，**不是"替代人的审查"**。
 
-### 4.8.7 拷问内核（AI 执行规范）
+lightme **不需要** sandbox（纯对话 / 推理 + 报告写入，不执行不可信代码）。
 
-四原则（与 grill-with-docs 一致）：
+### 4.8.4 输入
 
-1. **无情追问，走决策树分支**：无情地拷问设计的每个方面，沿设计树每个分支往下走，逐一解决决策之间的依赖
-2. **一次一个问题**：每次只抛出一个问题，等 Leader 回答后再继续；绝不一次列一堆
-3. **每个问题给推荐答案**：提问时同时给出自己推荐的答案，让 Leader 可以快速确认（说"是"即可）
-4. **能查代码就查代码**：如果一个问题可以通过探索代码库回答，就去查代码，而不是问 Leader
+| 模式 | MUST 读 | SHOULD 读 | MAY 探索 |
+|---|---|---|---|
+| Design | `<story>-design.master.md` + `project-context.md`（按 §7.8 自动跳过 AI 隔离块） | `iLink-doc/domain/<相关模块>-domain-knowledge.md`（若涉及该模块） | 源代码 |
+| PM | `<story>-pm.master.md` + `project-context.md` + `<story>-requirement.md` | — | 源代码 |
 
-增量能力：
-- **查代码同时找文档**：探索代码库时，同时寻找 `project-context.md` 与相关模块 `domain-knowledge.md` 作为知情来源
-- **术语拷问**：当 Leader 用的术语与 `project-context` / `domain` 文档定义冲突，或模糊一词多义时，立刻挑战，逼出精确定义
-- **具体场景压测**：用具体场景压测领域关系，逼 Leader 在概念边界上说精确
-- **代码交叉验证**：当 Leader 陈述某功能如何工作时，检查代码是否一致，发现矛盾就指出
+无 domain 文件时，Design 模式 lightme **不询问、不阻断**，直接在报告顶部标注"知情来源：无 domain 参考"即可。是否要补 domain 由使用者看完报告后自行触发 `/ilink-domain`。
 
-**行业特化**（如金融术语清单、合规要求、特定高频维度）**SHALL NOT** 写入框架级 prompt；应通过项目自维护的 `iLink/souls/plugs/lightme.project.plug.md`（按 §4.7 加法语义机制）提供。
+### 4.8.5 拷问内核
 
-### 4.8.8 检索局限标注（AI 执行规范）
+详见 `lightme.soul.md`（内核源自 Matt Pocock 官方 `grill-with-docs` skill 的四原则：无情追问 / 一次一问 / 给推荐答案 / 能查代码就查代码）。Root Spec 层面只保留两条硬边界：
 
-大型代码库（无法全量载入上下文）下，文本检索（grep / 关键字搜索）有局限——反射、动态 SQL、配置映射、注解派发等方式的依赖无法通过文本检索发现。
+1. **行业特化** **SHALL NOT** 写入框架级 soul / Root Spec：金融术语、合规要求、行业高频维度等通过项目自维护的 `iLink/souls/plugs/lightme.project.plug.md`（按 §4.7 加法语义）提供。
+2. **检索局限标注**：用代码回答依赖类问题时，MUST 区分**阳性结论**（"找到了，确认存在 X"，相对可信）与**阴性结论**（"查了，未找到 X"，**不等于不存在**）。阴性结论 MUST 标注局限——例如 "通过检索 `token.userId` 找到 N 处引用，反射 / 动态 SQL / 注解派发等方式无法检出，此结论可能不完整"。
 
-lightme 在用代码回答依赖类问题时，MUST：
-- 区分**阳性结论**（"找到了，确认存在 X"，相对可信）与**阴性结论**（"查了，未找到 X"，**不等于不存在**）
-- 阴性结论 MUST 标注局限：例如 "通过检索 `token.userId` 找到 N 处引用，反射 / 动态 SQL / 注解派发等方式无法检出，此结论可能不完整"
+### 4.8.6 报告结构：三态 + TO-FIX copy-ready 代码块
 
-### 4.8.9 追问策略（AI 执行规范）
+每份报告 MUST 包含以下区块（按顺序）。Design 与 PM 模式共用同一模板，差异仅在锚定文档与文件名。
 
-**主导**：追问方向 MUST 从本次 design + project-context + domain 的具体内容**动态识别**追问分支。SHALL NOT 套用预定义通用清单。
+**文件位置**：
+- Design 模式：`iLink-doc/<story-id>/<story-id>-lightme-design.md`
+- PM 模式：`iLink-doc/<story-id>/<story-id>-lightme-pm.md`
 
-**辅助**：对常见高频维度做"是否涉及"评估扫描（一致性 / 幂等 / 跨模块依赖 / 异常降级路径等）：
-- 涉及 → 深挖
-- 不涉及 → 明确跳过，**SHALL NOT 为凑数强行提问**
+**骨架**：
 
-强制的是"评估这个维度是否相关"，**不是**"必须提出这个维度的问题"。评估结论可以是"本次不涉及，跳过"。
+```markdown
+# Lightme Report: <story-id>
+日期：YYYY-MM-DD
+审视对象：design.master.md / pm.master.md
+知情来源：<列出实际读到的文件；无 domain 参考时显式标注>
 
-### 4.8.10 输出三类 md 与写入边界（AI 执行规范）
+---
 
-lightme 运行过程中可能写三类性质完全不同的 md 文件：
+## 拷问过程
+（逐轮落盘，每轮含问题 + 推荐答案 + 使用者回答 + 现状依据）
 
-| 类别 | 文件 | 性质 | 是否新建 | Human-Gate |
-|---|---|---|---|---|
-| 第一类 | `<story-id>-lightme.md` | 本次拷问过程与处置记录（审计） | 是，每 Story 新建 | 否 |
-| 第二类 | `project-context.md` | 项目知识库，就地更新 | 否 | 是，每次写前确认 |
-| 第三类 | `<模块>-domain-knowledge.md` | 模块领域知识，就地更新 | **绝不创建** | 是，每次写前确认 |
+## 被照亮的盲区与处置（审计核心区）
+（每个盲区 MUST 标三态之一，TO-FIX 项 MUST 附 copy-ready 代码块）
 
-写入边界（硬约束）：
+## 给使用者的提示
+- 以上盲区由使用者在后续决策时判断
+- TO-FIX 项需将报告中的修订建议代码块粘贴到目标文件后再推进下游
+- ACCEPTED-RISK 项已留痕，推进下游即代表接受这些已知风险
+- lightme 不对目标文档是否通过做结论
 
-- **project-context.md**：MUST 跳过 §7.8 定义的 AI 隔离块（Issue System 集成块等），**SHALL NOT** 触碰该块内任何内容
-- **domain-knowledge.md**：仅就地更新**已存在**的文件。10 章中具体章节可改与否由 Human-Gate 时 Leader 判定（lightme 默认可触碰所有章节，Leader 是最终决策者）
-- **domain-knowledge.md 不存在**：**SHALL NOT 创建**。将澄清内容写入 lightme 报告的"建议补充 domain"区块，转交 `/ilink-domain` 走正规审核流程
-
-**绝对禁止创建不存在的 domain-knowledge.md**——它是 `/ilink-domain` 的专属产物，有严格的生成流程（资深工程师引导、10 章标准结构、资深审核确认）。lightme 是审查者，不是知识沉淀者。
-
-**`domain-knowledge.md §10 待确认` 区块 SHALL NOT 被 lightme 修改**——该区块是 `/ilink-domain` 与业务专家的专属工作区，承载尚未由资深人员审核确认的 [待确认] 项。lightme 可触碰其它 9 章，但 §10 始终不动；若有澄清要补入 §10，写进 lightme 报告的"建议补充 domain"区块，转交 `/ilink-domain` 走正规流程。
-
-**各平台 Bootstrap 实现 SHALL NOT 覆盖 lightme 已写入 `project-context.md` 的内容**——下游用户重跑 Bootstrap 时（如框架版本升级），各平台的 `/ilink-bootstrap` 实现 MUST 检测 project-context.md 是否已存在且含主体内容（包括 lightme 沉淀的术语/决策），存在则跳过重生成。当前 v1.8.0 Codex 平台已遵守此约束（步骤 4 跳过逻辑）；Claude/Qoder/Gemini 平台跟进时 MUST 同步遵守。
-
-形成的闭环：
-
-```
-lightme 拷问暴露术语盲区
-        ↓
-该模块 domain 存在？
-        ├── 存在 → 就地更新（Human-Gate 确认后写入）
-        └── 不存在 → 绝不创建
-                     ↓
-              写进 lightme 报告"建议补充 domain"区块
-              Leader 后续触发 /ilink-domain 走正规流程
-                     ↓
-              下次 lightme 可更新它
+---
+# ILINK-PROTOCOL-METADATA
+（§4.8.7 印章）
 ```
 
-### 4.8.11 lightme.md Metadata 印章
+**三态语义**：
 
-作为审计性辅助文档，`<story-id>-lightme.md` MUST 在文件末尾包含以下 Metadata 印章子集：
+| 态 | 含义 |
+|---|---|
+| **RESOLVED** | 拷问中已澄清，目标文档现有内容足以覆盖该盲区。SHALL NOT 用此态描述"未来会修"的情况 |
+| **TO-FIX** | 拷问暴露的实质文档缺陷，需修订目标文档后再推进下游 |
+| **ACCEPTED-RISK** | 使用者主动判断可接受、本次跳过。MUST 写明使用者接受理由（如"本期 SLA 有保障，下期解决"、"路径概率极低，监控覆盖"）。无理由的 ACCEPTED-RISK SHALL NOT 输出 |
+
+**TO-FIX 项的 copy-ready 代码块（硬要求）**：
+
+每个 TO-FIX 项 **MUST** 附一段或多段 ` ```diff` / ` ```markdown` 代码块，给出可直接复制粘贴到目标文件的精确文本。**SHALL NOT** 只写"建议增加 XX 章节" / "建议明确 YY 边界"等抽象描述。
+
+代码块 MUST 至少包含：
+- **目标位置**：文件名 + 章节锚点（如 `pm.master.md §B5` 或 `design.master.md §6 [DESIGN_DECISIONS]`）
+- **修订内容**：原文 → 改后，或直接给出新增片段
+
+示例：
+
+````markdown
+### TO-FIX 1：AC-03 验收标准缺少负向场景
+
+**目标位置**：`pm.master.md §B4 验收标准契约`
+
+**修订建议（粘贴此段替换 AC-03 行）**：
+
+```markdown
+| AC-03 | Req-02 | Given 用户余额不足 / When 提交订单 / Then 返回 ORDER_BALANCE_INSUFFICIENT 错误码且不创建订单 | 单元测试 + 接口测试 |
+```
+
+**理由**：原文只写了"余额充足时下单成功"，未定义余额不足时的行为，下游 Designer 会自由发挥。
+````
+
+**三态汇总后的下游语义**：
+
+| 模式 | 全 RESOLVED | 有 TO-FIX | 全 ACCEPTED-RISK |
+|---|---|---|---|
+| Design | 使用者可直接 `/ilink-approve` | 使用者**先**粘贴修订到 design.master.md，**再** `/ilink-approve` | `/ilink-approve` 即正式接受已知风险 |
+| PM | 推进至 `/ilink-design`（若 pm 为 STAGING 先 `/ilink-approve`） | 使用者**先**粘贴修订到 pm.master.md，**再**推进 | 推进即正式接受已知风险 |
+
+**Metadata 印章在使用者粘贴 TO-FIX 后是否需要重算**：lightme 不动 master doc，lightme 报告中 Upstream_SHA1 锚定的是"使用者粘贴前"那一版 master doc。使用者粘贴修订后 master doc 内容变了，但 **lightme 报告 SHALL NOT 因此重写**——它记录的是"拷问时刻"的状态。使用者粘贴后 SHOULD 按 §5.4 规则重算被修改 master doc 自己的 Metadata 印章（其 Upstream_SHA1 锚定的是其上游，不是 lightme 报告）。
+
+### 4.8.7 Metadata 印章
+
+lightme 报告 MUST 在文件末尾包含以下 Metadata 印章：
 
 ```
 ---
@@ -1073,7 +1091,7 @@ Role: LIGHTME
 AI_Vendor: <Host CLI 品牌>
 AI_Model: <模型 ID 或工具版本>
 Current_Timestamp: <TZ=Asia/Shanghai date +%Y-%m-%dT%H:%M:%S+08:00>
-Upstream_SHA1: <shasum iLink-doc/<story-id>/<story-id>-design.master.md 第一列>
+Upstream_SHA1: <shasum 目标文档 第一列>
 Status: ADVISORY
 ---
 ```
@@ -1081,67 +1099,27 @@ Status: ADVISORY
 字段说明：
 
 - `Role`：固定填 `LIGHTME`（角色枚举新增值）
-- `Upstream_SHA1`：MUST 锚定 `design.master.md`（主上游）当前内容的 SHA1，用于审计验证报告对应哪一版 design
+- `Upstream_SHA1`：Design 模式锚定 `<story>-design.master.md`，PM 模式锚定 `<story>-pm.master.md`
 - `Status`：固定填 `ADVISORY`，表明本文件**不参与流水线状态机**（§5.3 不适用）
 - `Target_Files`：lightme 不产生源码，本字段省略或留空
 
 Timestamp 和 SHA1 MUST 通过 shell 命令实际获取（按 §5.4 规则），SHALL NOT 使用占位符。
 
-### 4.8.12 lightme.md 报告结构
+### 4.8.8 输出禁结论
 
-每份 `<story-id>-lightme.md` MUST 包含以下区块（按顺序）：
-
-```markdown
-# Lightme Report: <story-id>
-日期：YYYY-MM-DD
-审视对象：design.master.md
-知情来源：project-context.md + <模块>-domain-knowledge.md + 源码检索
-模式：[完整 / 降级（缺 domain 文档）]
-
----
-
-## 拷问过程
-（逐轮落盘，每轮含问题 + 推荐答案 + Leader 回答 + 现状依据）
-
-## 被照亮的盲区与处置（审计核心区）
-每个盲区 MUST 标三态之一：
-- **RESOLVED**：拷问中澄清，设计已能覆盖或已就地更新文档
-- **TO-FIX**：暴露设计缺陷，需回 design 修改后再 approve
-- **ACCEPTED-RISK**：Leader 主动判断可接受、本次跳过——**MUST 写明 Leader 接受理由**（审计关键留痕）
-
-## 本次已更新的文档（经 Leader 确认）
-列出 project-context.md 和 domain-knowledge.md 的修改清单。
-
-## 建议补充 domain（转交 /ilink-domain）
-列出模块名 + 澄清内容 + 建议 Leader 触发的命令。
-
-## 给 Leader 的提示
-- 本次模式：完整 / 降级
-- 以上盲区待 Leader 在 approve 时判断
-- TO-FIX 项需在 design 修正后再 approve
-- ACCEPTED-RISK 项已留痕，approve 即代表接受这些已知风险
-- lightme 不对设计是否通过做结论
-
----
-# ILINK-PROTOCOL-METADATA
-（§4.8.11 印章）
-```
-
-### 4.8.13 硬性输出限定（AI 执行规范）
-
-- **SHALL NOT** 下"通过 / 不通过"结论。结论永远由 Leader 在 approve 时下。剥夺 lightme 下结论的权力，防止它走过场制造虚假安全感。
-- **MUST** 照亮至少 3 个具体的、有现状依据的盲区，除非 Leader 主动确认所有方向均已充分覆盖
+- **SHALL NOT** 下"通过 / 不通过"结论。结论永远由使用者在后续决策时下。剥夺 lightme 下结论的权力，防止它走过场制造虚假安全感
+- **MUST** 照亮至少 3 个具体的、有现状依据的盲区，除非使用者明确确认所有方向均已充分覆盖
 - **SHALL NOT** 出现 "通过"、"可以进入编码"、"设计无问题"、"建议批准" 等结论性表述
-- 每个盲区 SHOULD 标注现状依据（来自 design / project-context / domain / 代码的哪一部分）
+- 每个盲区 SHOULD 标注现状依据（来自 design / pm / project-context / domain / 代码的哪一部分）
 
-### 4.8.14 跨平台跟进现状（v1.8.0 首发）
+### 4.8.9 跨平台跟进现状（v1.8.0 首发）
 
-| 平台 | lightme 支持状态 |
-|------|------------------|
-| Codex CLI | ✅ v1.8.0 首发 |
-| Claude CLI | ✅ v1.8.0 首发（bootstrap 与 ilink-lightme.md/.sh 已包含 plug 初始化与 lightme 实现） |
-| Qoder CLI | ✅ v1.8.0 首发 |
-| Gemini CLI | ✅ v1.8.0 首发（bootstrap 与 ilink-lightme.toml/.sh 已包含 plug 初始化与 lightme 实现） |
+| 平台 | lightme 支持状态 | `-target pm` 支持 |
+|------|------------------|-------------------|
+| Codex CLI | ✅ v1.8.0 首发 | ✅ v1.8.0 首发 |
+| Claude CLI | ✅ v1.8.0 首发 | ✅ v1.8.0 首发 |
+| Qoder CLI | ✅ v1.8.0 首发 | ✅ v1.8.0 首发 |
+| Gemini CLI | ✅ v1.8.0 首发 | ✅ v1.8.0 首发 |
 
 ---
 
@@ -1190,6 +1168,8 @@ Status: <状态值>
 | `COMPLETED` | QA | 全部通过 | 人类 review → git commit |
 | `FAIL_BACK_TO_CODER` | QA | Coder 根因需修复 | `/ilink-coder`（回流） |
 
+> **LIGHTME 报告例外**：lightme 报告固定 `Status: ADVISORY`，不参与上述状态流转。ADVISORY 不在上表中，因为它不是流水线状态，而是标记该报告为 advisory 性质（不阻塞下游）。详见 §4.8.7。
+
 ### 5.4 Agent 自填字段（Timestamp & Hash）
 
 `Current_Timestamp` 和 `Upstream_SHA1` MUST 由 Agent 在输出 Master Doc 前通过 shell 命令实际获取并填入：
@@ -1205,9 +1185,10 @@ Status: <状态值>
 | Designer | `<story>-pm.master.md` | `shasum iLink-doc/<story>/<story>-pm.master.md` |
 | Coder | `<story>-design.master.md` | `shasum iLink-doc/<story>/<story>-design.master.md` |
 | QA | `<story>-code.master.md` | `shasum iLink-doc/<story>/<story>-code.master.md` |
-| LIGHTME | `<story>-design.master.md` | `shasum iLink-doc/<story>/<story>-design.master.md` |
+| LIGHTME (Design) | `<story>-design.master.md` | `shasum iLink-doc/<story>/<story>-design.master.md` |
+| LIGHTME (PM) | `<story>-pm.master.md` | `shasum iLink-doc/<story>/<story>-pm.master.md` |
 
-> **LIGHTME 注**：lightme.md 不参与 Status 状态机（固定 `Status: ADVISORY`），但 Upstream_SHA1 仍 MUST 计算并锚定 design 当前版本，用于审计验证报告对应哪一版 design。详见 §4.8.11。
+> **LIGHTME 注**：lightme 报告不参与 Status 状态机（固定 `Status: ADVISORY`），但 Upstream_SHA1 仍 MUST 计算并锚定当前拷问目标文档（Design 模式锚定 design.master.md，PM 模式锚定 pm.master.md），用于审计验证报告对应哪一版目标文档。详见 §4.8.7。
 
 Agent MUST NOT 输出 `—` 作为这两个字段的值。不存在"引擎注入"或"事后校正"路径——所有 Metadata 字段均由 Agent 在输出时自填完毕。
 
@@ -1441,7 +1422,8 @@ iLink 的每个角色 MUST 由人类手动触发：
 │       ├── <id>-review.master.md
 │       ├── <id>-feedback.md            ← 协作反馈文件（v1.6.0新增，旁路输出，不进契约链）
 │       ├── <id>-usage.md               ← Usage 追踪文件（v1.6.0新增，仅 init/qa 写入，不进契约链）
-│       ├── <id>-lightme.md             ← Lightme 拷问审计报告（v1.8.0新增，advisory，不进契约链）
+│       ├── <id>-lightme-design.md      ← Lightme Design 拷问审计报告（v1.8.0新增，advisory，不进契约链）
+│       ├── <id>-lightme-pm.md          ← Lightme PM 拷问审计报告（v1.8.0新增，advisory，不进契约链）
 │       ├── .snapshots/                 ← design 快照目录（v1.6.0新增，不提交）
 │       │   └── design.master.<timestamp>.md
 │       └── .retry_count                ← 信号文件（不提交）
@@ -1630,7 +1612,8 @@ iLink 的每个角色 MUST 由人类手动触发：
 - `iLink-doc/<story>/<story>-*.master.md`
 - `iLink-doc/<story>/<story>-feedback.md`（v1.6.0，Coach 协作复盘记录）
 - `iLink-doc/<story>/<story>-usage.md`（v1.6.0，Per-Story 资源消耗追踪）
-- `iLink-doc/<story>/<story>-lightme.md`（v1.8.0，Lightme 拷问审计报告，advisory；MUST 提交以保审计追溯）
+- `iLink-doc/<story>/<story>-lightme-design.md`（v1.8.0，Lightme Design 拷问审计报告，advisory；MUST 提交以保审计追溯）
+- `iLink-doc/<story>/<story>-lightme-pm.md`（v1.8.0，Lightme PM 拷问审计报告，advisory；MUST 提交以保审计追溯）
 - `iLink/souls/plugs/*.project.plug.md`（v1.8.0，项目级 plug 补充规则；MUST 提交以让全团队共享项目定制）
 - `.claude/commands/*.md`、`.claude/commands/*.sh`（`/ilink-pull` 等纯 bash 命令的脚本本体）
 - `.codex/commands/*`、`.qoder/commands/*`、`.gemini/commands/*`

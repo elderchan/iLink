@@ -192,7 +192,7 @@ AI QA 读设计 + 读代码 → 输出审查报告（QA 不知道 Coder 的想�
 
 **Soul Plug（项目级角色规则补充）**：框架自带 soul 是通用规则，项目可在 `iLink/souls/plugs/` 下写项目级补充（如"金额必须 BigDecimal"），AI 自动加载，framework 升级不动 plug。
 
-**`/ilink-lightme`（设计拷问员）**：design 完成后、approve 前的可选拷问命令。在全新会话中运行（隔离护短），以对抗人格照亮设计盲区，输出三态盲区清单（RESOLVED / TO-FIX / ACCEPTED-RISK）。不下"通过/不通过"结论。四平台均已首发。
+**`/ilink-lightme`（设计/需求拷问员）**：目标文档（design 或 pm）完成后、下游角色消费之前的可选拷问命令。支持 Design 模式（默认，四平台均已实现）和 PM 模式（`-target pm`，四平台均已实现）。建议在全新会话中运行以增强隔离效果（同会话也可执行），以对抗人格照亮盲区，输出三态盲区清单（RESOLVED / TO-FIX / ACCEPTED-RISK）。不下"通过/不通过"结论。
 
 ---
 
@@ -432,7 +432,7 @@ iLink 的价值可以用三句话概括：
 | 命令 | 用途 | 频率 |
 |------|------|------|
 | `/ilink-refine <需求ID>` | 修订 STAGING 文档（逐条确认阻塞项） | STAGING 时使用 |
-| `/ilink-lightme <需求ID>` | 可选设计拷问员（v1.8.0+，必须在全新会话执行） | design 后、approve 前 |
+| `/ilink-lightme [-target pm\|design] <需求ID>` | 可选设计/需求拷问员（v1.8.0+，建议全新会话，非强制） | design 后 / pm 后 |
 | `/ilink-status [需求ID]` | 查看流水线状态与下一步建议 | 随时 |
 | `/ilink-bootstrap` | 项目冷启动（生成知识库） | 每个项目一次 |
 
@@ -448,7 +448,7 @@ iLink 的价值可以用三句话概括：
 │   ├── iLink-root-spec.md
 │   ├── iLink-implementation-guide.md
 │   └── souls/                  ← 各角色行为规范（含 domain.soul.md）
-│       ├── lightme.soul.md     ← 设计拷问员（v1.8.0）
+│       ├── lightme.soul.md     ← 设计/需求拷问员（v1.8.0）
 │       └── plugs/              ← 项目级角色规则补充（v1.8.0）
 └── iLink-doc/                  ← 文档归档
     ├── kcia-1520/              ← 需求 A 的完整文档链（交付模式）

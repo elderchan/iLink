@@ -18,7 +18,7 @@
 | `/ilink-coder <story>` | Coder（编码工程师） | `/ilink-coder jzjy-0001` |
 | `/ilink-qa <story> <usage-value>` | QA（质量审查员，v1.6.0：usage-value 必填） | `/ilink-qa jzjy-0001 18500` |
 | `/ilink-refine <story>` | 修订对话（STAGING 阻塞解除） | `/ilink-refine jzjy-0001` |
-| `/ilink-lightme <story>` | Lightme（设计拷问员，可选，v1.8.0+） | `/ilink-lightme jzjy-0001` |
+| `/ilink-lightme [-target pm\|design] <story>` | Lightme（设计/需求拷问员，可选，v1.8.0+） | `/ilink-lightme jzjy-0001` 或 `/ilink-lightme -target pm jzjy-0001` |
 | `/ilink-approve <story>` | Human-Gate 推进（含 Coach 子流程，v1.6.0） | `/ilink-approve jzjy-0001` |
 | `/ilink-domain <module>` | Domain Engineer（领域知识生成，认知模式） | `/ilink-domain login-410301` |
 | `/ilink-pull <story>` | 从 Issue System 拉取需求"描述"字段写入 requirement.md（纯工具，无 AI 介入） | `/ilink-pull FS-AMO-5359` |
@@ -378,35 +378,42 @@ Status: <COMPLETED | FAIL_BACK_TO_CODER | STAGING>
 
 ---
 
-## /ilink-lightme <story> — Lightme 角色（设计拷问员，v1.8.0+）
+## /ilink-lightme [-target pm|design] <story> — Lightme 可选审视（v1.8.0+）
 
-> 自 iLink v1.8.0 引入。详见 Root Spec §4.8、`iLink/souls/lightme.soul.md`。
+> 自 iLink v1.8.0 引入。详见 Root Spec §4.8、`iLink/souls/lightme.soul.md`。advisory 性质，不改变 Status，不阻塞下游，**SHALL NOT 触碰任何 master doc / project-context / domain-knowledge 文件**。所有发现以 copy-ready 修订建议代码块的形式写入 lightme 报告，使用者自行复制粘贴。
 
 ### 前置准备
 
-**重要**：lightme MUST 在**全新的 Codex 会话**中运行，不能接在 `/ilink-design` 的同一会话后（会护短，见 Root Spec §4.8.5）。
+**友情提示**：建议在**全新的 Codex 会话**中运行 lightme（见 Root Spec §4.8.3）。全新会话对抗"AI 自身合理性"和同会话护短通常更有效，但会重新读取 soul、项目文档、目标文档和相关代码，可能消耗更多 token。同一会话也允许执行，只是隔离效果下降。
 
-在【全新的 Codex 会话】中输入 `/ilink-lightme <story>`。AI 会自动调用预检脚本（`.codex/commands/ilink-lightme`，内部细节）校验 design.master.md 存在并计算 Upstream_SHA1，然后按本章节执行拷问任务。
+在 Codex 会话中输入 `/ilink-lightme [-target pm|design] <story>`。`-target` 可选，默认 `design`。AI 会自动调用预检脚本（`.codex/commands/ilink-lightme`，内部细节）校验目标文档存在并计算 Upstream_SHA1，然后按本章节执行拷问任务。若明显是在生成目标文档的同一会话中运行，先向使用者友情提示隔离效果下降与 token 权衡，但不阻断。
 
 ### 准备
 - 读取 `iLink/souls/universal.soul.md` 及其 plug（若存在）
 - 读取 `iLink/souls/lightme.soul.md` 及 `iLink/souls/plugs/lightme.project.plug.md`（若存在）
 
 ### 前置检查
+
+> lightme 不限目标文档状态——任何阶段（STAGING / PENDING_DESIGNER / PENDING_CODER / 已被下游消费 / 已 COMPLETED）都可触发，因为 lightme 不动 master doc。
+
+**Design 模式（默认）**：
 - 读取 `iLink-doc/<story>/<story>-design.master.md`
 - 若不存在，提示用户先执行 `/ilink-design <story>` 并退出
-- 检查 design.master.md 的 Status：
-  - `STAGING`（典型）→ 继续
-  - `PENDING_CODER` → **拒绝执行**：design 已经过 approve，lightme 无意义。提示用户：要么重跑 `/ilink-design` 后再 lightme，要么手动复盘留痕
-  - 其它状态（如 PM 阶段误用）→ warning 但继续
+
+**PM 模式（`-target pm`）**：
+- 读取 `iLink-doc/<story>/<story>-pm.master.md`
+- 若不存在，提示用户先执行 `/ilink-pm <story>` 并退出
+- 读取 `iLink-doc/<story>/<story>-requirement.md`（需求定义原文）
 
 ### 与 /ilink-refine 的顺序建议
 
-若 design 含 `[待确认]` 项（典型的 Designer 自标阻塞），**建议先 `/ilink-refine` 把 [待确认] 项澄清成 [已确认]，再 `/ilink-lightme` 拷问**。理由：refine 解决"已知不确定性"，lightme 挖"未发现盲区"——先把已知问题压实，避免 lightme 在已经标了 [待确认] 的位置重复挖。
+若目标文档含 `[待确认]` 项，**建议先 `/ilink-refine` 把 [待确认] 项澄清成 [已确认]，再 `/ilink-lightme` 拷问**。理由：refine 解决"已知不确定性"，lightme 挖"未发现盲区"——先把已知问题压实，避免 lightme 在已经标了 [待确认] 的位置重复挖。
 
-顺序不强制；Leader 也可先跑 lightme 让两边问题一并暴露，再决定如何修订。
+顺序不强制；使用者也可先跑 lightme 让两边问题一并暴露，再决定如何修订。
 
 ### 执行（拷问主流程）
+
+**Design 模式**：
 
 按 lightme.soul.md 第 3 节"工作方式"执行：四原则 + 查代码找文档 + 术语拷问 + 场景压测 + 代码交叉验证。
 
@@ -414,19 +421,47 @@ Status: <COMPLETED | FAIL_BACK_TO_CODER | STAGING>
 
 按 lightme.soul.md 第 4 节执行检索局限标注：阳性 / 阴性结论区分。
 
-每识别一个盲区 → 标注三态（RESOLVED / TO-FIX / ACCEPTED-RISK）→ 追加进 `<story>-lightme.md` 的"被照亮的盲区与处置"区块。
+每识别一个盲区 → 标注三态（RESOLVED / TO-FIX / ACCEPTED-RISK）→ 追加进 `<story>-lightme-design.md` 的"被照亮的盲区与处置"区块。**TO-FIX 项 MUST 附 copy-ready 修订建议代码块**（见下文）。
 
-### 三类 md 写入边界
+**PM 模式（`-target pm`）**：
 
-按 lightme.soul.md 第 6 节执行：
-- 写 `project-context.md` 前 MUST Human-Gate 确认，且 SHALL NOT 触碰 §7.8 隔离块
-- 写已存在的 `<模块>-domain-knowledge.md` 前 MUST Human-Gate 确认
-- **domain-knowledge.md §10 待确认区块 SHALL NOT 被 lightme 修改**；若有澄清要补入 §10，写进报告"建议补充 domain"区块转交 `/ilink-domain`（详见 Root Spec §4.8.10）
-- domain-knowledge.md 不存在时 SHALL NOT 创建，写进报告"建议补充 domain"区块
+按 lightme.soul.md 第 3 节四原则执行，但拷问维度切换为需求层面：
+
+- **需求完整性**：是否覆盖了所有应该有的用户场景？有没有"用户没说但应该有的"需求被遗漏？
+- **AC 可验证性**：每条验收标准是否能明确判断"做到/没做到"？有没有含糊的"性能好"、"用户体验好"类 AC？
+- **范围边界清晰度**：In Scope / Out of Scope 是否精确到不会产生歧义？有没有容易被误解为要做但实际不做的事没列进 Out of Scope？
+- **隐含假设显式化**：PM 是否把隐含假设标注为 `[PM推导]` 或 `[待确认]`？有没有未声明的假设被当作事实写进了 B 层？
+- **约束与风险覆盖**：B2 硬约束是否完整？B5 假设与风险是否覆盖了可能的失败路径？
+
+每识别一个盲区 → 标注三态 → 追加进 `<story>-lightme-pm.md`，TO-FIX 项同样 MUST 附 copy-ready 代码块。
+
+### 写入边界（核心硬约束）
+
+lightme 的**唯一产出**是 lightme 报告。除此之外：
+- **SHALL NOT** 写、改、删任何 master doc（pm/design/code/review.master.md）
+- **SHALL NOT** 写、改、删 `project-context.md`
+- **SHALL NOT** 写、改、删 `iLink-doc/domain/<模块>-domain-knowledge.md`
+- **SHALL NOT** 改变任何 Master Doc 的 Status
+- **SHALL NOT** 调用 `/ilink-refine` / `/ilink-pm` / `/ilink-design` 等其他命令
+
+不管目标文档当前 Status 是什么，lightme 行为完全一致——只生成报告，TO-FIX 项以可粘贴片段呈现，使用者自行复制到目标文件。
+
+详见 Root Spec §4.8.2。
+
+### TO-FIX 项 copy-ready 修订建议代码块（硬要求）
+
+每个 TO-FIX 项 **MUST** 附一段或多段 ` ```diff` 或 ` ```markdown` 代码块，给出可直接复制粘贴到目标文件的精确文本。**SHALL NOT** 只写"建议增加 XX 章节" / "建议明确 YY 边界"等抽象描述。
+
+代码块 MUST 至少包含：
+- **目标位置**：文件名 + 章节锚点（如 `pm.master.md §B5` 或 `design.master.md §6 [DESIGN_DECISIONS]`）
+- **修订内容**：原文 → 改后，或直接给出新增片段
+
+详细示例见 Root Spec §4.8.6。
 
 ### 输出
 
-`iLink-doc/<story>/<story>-lightme.md`，按 Root Spec §4.8.12 结构。
+- Design 模式：`iLink-doc/<story>/<story>-lightme-design.md`，按 Root Spec §4.8.6 结构
+- PM 模式：`iLink-doc/<story>/<story>-lightme-pm.md`，结构相同
 
 ### Metadata 印章
 
@@ -438,23 +473,23 @@ Role: LIGHTME
 AI_Vendor: Codex
 AI_Model: <实际版本>
 Current_Timestamp: <shell 获取>
-Upstream_SHA1: <shasum design.master.md 取第一列>
+Upstream_SHA1: <shasum 目标文档 取第一列>
 Status: ADVISORY
 ---
 ```
 
-SHA1 与时间戳 MUST 通过 shell 命令实际获取。预检脚本（`.codex/commands/ilink-lightme`）已计算 SHA1 并在终端输出，可直接采用。
+SHA1 与时间戳 MUST 通过 shell 命令实际获取。Upstream_SHA1 锚定目标文档（Design 模式：design.master.md；PM 模式：pm.master.md）。预检脚本已计算 SHA1 并在终端输出，可直接采用。
 
 ### 完成后
-- 提示用户：lightme.md 已生成，建议在 approve 前 review
-- TO-FIX 盲区 → 建议先回 `/ilink-design`（或 `/ilink-refine`）修正
-- ACCEPTED-RISK 盲区 → 已留痕，approve 即代表接受
+- 提示用户：lightme 报告已生成，建议在下一步操作前 review
+- TO-FIX 盲区 → 提示使用者将报告中对应的 copy-ready 代码块粘贴到目标文件后再推进下游
+- ACCEPTED-RISK 盲区 → 已留痕；Design 模式 `/ilink-approve` 即代表接受，PM 模式进入 `/ilink-design` 即代表接受
 - 不下"通过 / 不通过"结论
 
 ### 硬约束（防走过场）
 
 - SHALL NOT 出现 "通过"、"可以进入编码"、"设计无问题"、"建议批准" 等结论性表述
-- MUST 至少 3 个具体、有现状依据的盲区（除非 Leader 主动确认全覆盖）
+- MUST 至少 3 个具体、有现状依据的盲区（除非使用者主动确认全覆盖）
 
 ---
 
@@ -832,7 +867,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 /ilink-init <story> <usage-value>  → 创建 Story 目录和需求模板（v1.6.0：usage-value 必填）
 /ilink-pm <story>                  → PM：需求分析 → 业务合同
 /ilink-design <story>              → Designer：技术设计 → 文件级任务清单
-/ilink-lightme <story>             → Lightme：设计拷问员（可选，v1.8.0+；MUST 在全新会话执行）
+/ilink-lightme <story>             → Lightme：设计/需求拷问员（可选，v1.8.0+；建议全新会话，非强制）
 /ilink-approve <story>             → Human-Gate：审核推进 + Coach 协作复盘
 /ilink-coder <story>               → Coder：按设计编码 → 直接写入磁盘
 /ilink-qa <story> <usage-value>    → QA：代码审查 → 审查报告（v1.6.0：usage-value 必填）
@@ -901,7 +936,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 1. 读取 `project-context.md` 了解项目
 2. 创建 Story：在 Codex 对话窗口输入 `/ilink-init <story-id> <usage-value>`（v1.6.0：usage-value 必填，传入 `/status` 显示的 "Context window" used 值）
 3. 按流水线执行：`/ilink-pm` → `/ilink-design` → `/ilink-approve` → `/ilink-coder` → `/ilink-qa <story> <usage-value>`
-4. 可选：在 `/ilink-design` 之后、`/ilink-approve` 之前，于**全新 Codex 会话**输入 `/ilink-lightme <story>` 触发设计拷问员（v1.8.0+）
+4. 可选：在 `/ilink-design` 之后、`/ilink-approve` 之前，输入 `/ilink-lightme <story>` 触发设计/需求拷问员（v1.8.0+；建议全新 Codex 会话以提升隔离效果，但会更耗 token）
 
 ### 角色触发
 
@@ -1028,7 +1063,7 @@ bash .codex/commands/ilink-pull <story-id>
 | `.codex/commands/ilink-init` | `/ilink-init <story> <usage>` | 创建 Story 目录和需求模板 |
 | `.codex/commands/ilink-status` | `/ilink-status [story]` | 查看流水线状态 |
 | `.codex/commands/ilink-approve` | `/ilink-approve <story>` | 预检 STAGING 文档与定位 design 快照（AI 随后完成 Coach + Status 推进） |
-| `.codex/commands/ilink-lightme` | `/ilink-lightme <story>` | 校验 design 存在并计算 Upstream_SHA1（AI 随后执行拷问） |
+| `.codex/commands/ilink-lightme` | `/ilink-lightme [-target pm\|design] <story>` | 校验目标文档（design/pm）存在并计算 Upstream_SHA1（AI 随后执行拷问） |
 | `.codex/commands/ilink-pull` | `/ilink-pull <story>` | 从 Issue System 拉取需求"描述"字段写入 requirement.md（纯工具命令，无 AI 介入；AI 直接转发输出） |
 
 ---
